@@ -1,0 +1,11 @@
+image_id,file_path,label,split,annotator
+IMG-00001,images/n01440764/ILSVRC2012_val_00000001.JPEG,tench,validation,annotator-7
+IMG-00002,images/n01440764/ILSVRC2012_val_00000002.JPEG,tench,validation,annotator-3
+IMG-00003,images/n01443537/ILSVRC2012_val_00000003.JPEG,goldfish,validation,annotator-7
+IMG-00004,images/n01484850/ILSVRC2012_val_00000004.JPEG,great_white_shark,validation,annotator-12
+IMG-00005,images/n01491361/ILSVRC2012_val_00000005.JPEG,tiger_shark,validation,annotator-3
+IMG-00006,images/n01494475/ILSVRC2012_val_00000006.JPEG,hammerhead,validation,annotator-7
+IMG-00007,images/n01496331/ILSVRC2012_val_00000007.JPEG,electric_ray,validation,annotator-12
+IMG-00008,images/n01498041/ILSVRC2012_val_00000008.JPEG,stingray,validation,annotator-3
+IMG-00009,images/n01514668/ILSVRC2012_val_00000009.JPEG,cock,train,annotator-7
+IMG-00010,images/n01514859/ILSVRC2012_val_00000010.JPEG,hen,train,annotator-12
