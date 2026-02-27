@@ -1,0 +1,42 @@
+# Example: Generate DBOM for data files on every push
+# Copy this into .github/workflows/dbom.yml in your repo
+
+name: Generate Data Bill of Materials
+
+on:
+  push:
+    paths:
+      - 'data/**'  # Only run when data files change
+
+jobs:
+  generate-dbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate DBOM for training data
+        uses: makoto-project/makoto/demos/03-github-action@main
+        id: dbom
+        with:
+          file: data/training_set.csv
+
+      - name: Upload DBOM as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbom
+          path: ${{ steps.dbom.outputs.dbom-path }}
+
+      - name: Comment on PR with DBOM info
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📋 Data Bill of Materials\n\n` +
+                    `**File:** data/training_set.csv\n` +
+                    `**Hash:** \`${{ steps.dbom.outputs.dbom-hash }}\`\n` +
+                    `**DBOM:** ${{ steps.dbom.outputs.dbom-path }}\n`
+            })
