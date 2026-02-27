@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1",
+  "id": "dbom-a1b2c3d4-5678-9abc-def0-111111111111",
+  "created_at": "2025-01-15T07:30:00Z",
+  "source": {
+    "uri": "s3://acme-sensors/raw/2025-01-15/sensors_clean.csv",
+    "hash": {
+      "algorithm": "sha256",
+      "value": "97e22c829b87bc68f9a02038b494e03399455b8ae3a601c2b220057a712b644e"
+    },
+    "format": "csv"
+  },
+  "signature": {
+    "algorithm": "sha256",
+    "value": "97e22c829b87bc68f9a02038b494e03399455b8ae3a601c2b220057a712b644e",
+    "signer": "github:aronchick"
+  },
+  "lineage": [
+    {
+      "step": 1,
+      "description": "Raw sensor readings collected from IoT gateway",
+      "tool": "acme-iot-collector v2.1",
+      "input_hash": "n/a",
+      "output_hash": "97e22c829b87bc68f9a02038b494e03399455b8ae3a601c2b220057a712b644e"
+    }
+  ]
+}
