@@ -1,0 +1,11 @@
+trial_id,compound,dosage_mg,response_time_ms,outcome
+T-001,Compound-A,50,234,positive
+T-002,Compound-A,100,189,positive
+T-003,Compound-B,50,312,negative
+T-004,Compound-B,100,278,positive
+T-005,Compound-A,75,201,positive
+T-006,Compound-C,50,445,negative
+T-007,Compound-C,100,367,negative
+T-008,Compound-A,100,195,positive
+T-009,Compound-B,75,290,positive
+T-010,Compound-C,75,401,negative
