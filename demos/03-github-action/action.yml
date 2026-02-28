@@ -1,0 +1,52 @@
+name: 'Makoto DBOM Generator'
+description: 'Generate a Data Bill of Materials (DBOM) for data files in your pipeline'
+author: 'makoto-project'
+
+inputs:
+  file:
+    description: 'Path to the data file to generate DBOM for'
+    required: true
+  signer:
+    description: 'Signer identity (defaults to github:<actor>)'
+    required: false
+  output:
+    description: 'Output path for the DBOM JSON file'
+    required: false
+
+outputs:
+  dbom-path:
+    description: 'Path to the generated DBOM file'
+    value: ${{ steps.generate.outputs.dbom_path }}
+  dbom-hash:
+    description: 'SHA-256 hash of the data file'
+    value: ${{ steps.generate.outputs.dbom_hash }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate DBOM
+      id: generate
+      shell: bash
+      run: |
+        # Build the command
+        CMD="python3 ${{ github.action_path }}/generate_dbom.py ${{ inputs.file }}"
+
+        if [ -n "${{ inputs.signer }}" ]; then
+          CMD="$CMD --signer ${{ inputs.signer }}"
+        fi
+
+        if [ -n "${{ inputs.output }}" ]; then
+          CMD="$CMD --output ${{ inputs.output }}"
+        fi
+
+        # Run it
+        $CMD
+
+        # Set outputs
+        OUTPUT="${{ inputs.output }}"
+        if [ -z "$OUTPUT" ]; then
+          OUTPUT="${{ inputs.file }}.dbom.json"
+        fi
+
+        echo "dbom_path=$OUTPUT" >> $GITHUB_OUTPUT
+        echo "dbom_hash=$(python3 -c "import json; print(json.load(open('$OUTPUT'))['source']['hash']['value'])")" >> $GITHUB_OUTPUT
