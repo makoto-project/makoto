@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/schema/v0.2/envelope.schema.json",
+  "title": "Makoto v0.2 DSSE Envelope",
+  "type": "object",
+  "required": ["payloadType", "payload", "signatures"],
+  "properties": {
+    "payloadType": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 255
+    },
+    "payload": { "type": "string" },
+    "signatures": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/signature" }
+    }
+  },
+  "$defs": {
+    "signature": {
+      "type": "object",
+      "required": ["keyid", "sig"],
+      "properties": {
+        "keyid": {
+          "type": "string",
+          "minLength": 71,
+          "maxLength": 71
+        },
+        "sig": {
+          "type": "string",
+          "minLength": 88,
+          "maxLength": 88
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

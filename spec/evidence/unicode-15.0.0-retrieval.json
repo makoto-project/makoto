@@ -1,0 +1,30 @@
+{
+  "retrievedAt": "2026-08-22T23:20:45Z",
+  "tool": "curl 8.7.1 (x86_64-apple-darwin25.0)",
+  "resources": [
+    {
+      "url": "https://www.unicode.org/Public/15.0.0/ucd/CaseFolding.txt",
+      "finalUrl": "https://www.unicode.org/Public/15.0.0/ucd/CaseFolding.txt",
+      "bytes": 84690,
+      "sha256": "cdd49e55eae3bbf1f0a3f6580c974a0263cb86a6a08daa10fbf705b4808a56f7"
+    },
+    {
+      "url": "https://www.unicode.org/Public/15.0.0/ucd/CompositionExclusions.txt",
+      "finalUrl": "https://www.unicode.org/Public/15.0.0/ucd/CompositionExclusions.txt",
+      "bytes": 8911,
+      "sha256": "3b019c0a33c3140cbc920c078f4f9af2680ba4f71869c8d4de5190667c70b6a3"
+    },
+    {
+      "url": "https://www.unicode.org/Public/15.0.0/ucd/DerivedNormalizationProps.txt",
+      "finalUrl": "https://www.unicode.org/Public/15.0.0/ucd/DerivedNormalizationProps.txt",
+      "bytes": 837688,
+      "sha256": "d5687a48c95c7d6e1ec59cb29c0f2e8b052018eb069a4371b7368d0561e12a29"
+    },
+    {
+      "url": "https://www.unicode.org/Public/15.0.0/ucd/UnicodeData.txt",
+      "finalUrl": "https://www.unicode.org/Public/15.0.0/ucd/UnicodeData.txt",
+      "bytes": 1913704,
+      "sha256": "806e9aed65037197f1ec85e12be6e8cd870fc5608b4de0fffd990f689f376a73"
+    }
+  ]
+}

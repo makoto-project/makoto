@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/internal/v0.2/dataset-worker-result.schema.json",
+  "title": "Makoto v0.2 dataset-manifest worker result",
+  "type": "object",
+  "required": ["diagnostic", "entries", "phase", "status", "tokenCount"],
+  "properties": {
+    "diagnostic": {
+      "oneOf": [
+        { "$ref": "#/$defs/diagnostic" },
+        { "type": "null" }
+      ]
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 200000,
+      "items": { "$ref": "#/$defs/entry" }
+    },
+    "phase": {
+      "enum": ["complete", "parse", "schema", "semantic"]
+    },
+    "status": {
+      "enum": ["pass", "invalid", "resource_limit"]
+    },
+    "tokenCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 536870912
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "pass" } }, "required": ["status"] },
+      "then": {
+        "properties": {
+          "diagnostic": { "type": "null" },
+          "phase": { "const": "complete" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "invalid" } }, "required": ["status"] },
+      "then": {
+        "properties": {
+          "diagnostic": { "$ref": "#/$defs/datasetInvalidDiagnostic" },
+          "entries": { "maxItems": 0 },
+          "phase": { "enum": ["parse", "schema", "semantic"] }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "resource_limit" } }, "required": ["status"] },
+      "then": {
+        "properties": {
+          "diagnostic": { "$ref": "#/$defs/resourceLimitDiagnostic" },
+          "entries": { "maxItems": 0 }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "required": ["sha256"],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "entry": {
+      "type": "object",
+      "required": ["digest", "name", "size"],
+      "properties": {
+        "digest": { "$ref": "#/$defs/digest" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "size": {
+          "oneOf": [
+            { "type": "string", "pattern": "^(0|[1-9][0-9]*)$" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": ["code", "context"],
+      "properties": {
+        "code": { "enum": ["E_DATASET_MANIFEST_INVALID", "E_RESOURCE_LIMIT"] },
+        "context": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "datasetInvalidDiagnostic": {
+      "allOf": [
+        { "$ref": "#/$defs/diagnostic" },
+        { "properties": { "code": { "const": "E_DATASET_MANIFEST_INVALID" } } }
+      ]
+    },
+    "resourceLimitDiagnostic": {
+      "allOf": [
+        { "$ref": "#/$defs/diagnostic" },
+        { "properties": { "code": { "const": "E_RESOURCE_LIMIT" } } }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/internal/v0.2/profile-worker-result.schema.json",
+  "title": "Makoto v0.2 profile worker result",
+  "type": "object",
+  "required": [
+    "diagnostic",
+    "evaluationsConsumed",
+    "phase",
+    "status",
+    "tokenCount"
+  ],
+  "properties": {
+    "diagnostic": {
+      "oneOf": [
+        { "$ref": "#/$defs/diagnostic" },
+        { "type": "null" }
+      ]
+    },
+    "evaluationsConsumed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "phase": {
+      "enum": ["complete", "resolution", "validation"]
+    },
+    "status": {
+      "enum": ["pass", "invalid", "unresolved", "resource_limit"]
+    },
+    "tokenCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 8000000
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "pass" } }, "required": ["status"] },
+      "then": {
+        "properties": {
+          "diagnostic": { "type": "null" },
+          "phase": { "const": "complete" },
+          "evaluationsConsumed": { "minimum": 1 }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "unresolved" } }, "required": ["status"] },
+      "then": {
+        "properties": {
+          "diagnostic": { "$ref": "#/$defs/profileUnresolvedDiagnostic" },
+          "phase": { "const": "resolution" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "invalid" } }, "required": ["status"] },
+      "then": {
+        "properties": {
+          "diagnostic": { "$ref": "#/$defs/profileInvalidDiagnostic" },
+          "phase": { "const": "validation" },
+          "evaluationsConsumed": { "minimum": 1 }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "resource_limit" } }, "required": ["status"] },
+      "then": {
+        "properties": {
+          "diagnostic": { "$ref": "#/$defs/resourceLimitDiagnostic" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "phase": { "enum": ["resolution", "validation"] } }, "required": ["phase"] },
+      "then": { "properties": { "diagnostic": { "$ref": "#/$defs/diagnostic" } } }
+    }
+  ],
+  "$defs": {
+    "diagnostic": {
+      "type": "object",
+      "required": ["code", "context"],
+      "properties": {
+        "code": {
+          "enum": ["E_PROFILE_INVALID", "E_PROFILE_UNRESOLVED", "E_RESOURCE_LIMIT"]
+        },
+        "context": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "profileInvalidDiagnostic": {
+      "allOf": [
+        { "$ref": "#/$defs/diagnostic" },
+        { "properties": { "code": { "const": "E_PROFILE_INVALID" } } }
+      ]
+    },
+    "profileUnresolvedDiagnostic": {
+      "allOf": [
+        { "$ref": "#/$defs/diagnostic" },
+        { "properties": { "code": { "const": "E_PROFILE_UNRESOLVED" } } }
+      ]
+    },
+    "resourceLimitDiagnostic": {
+      "allOf": [
+        { "$ref": "#/$defs/diagnostic" },
+        { "properties": { "code": { "const": "E_RESOURCE_LIMIT" } } }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

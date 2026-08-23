@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/schema/v0.2/bundle.schema.json",
+  "title": "Makoto v0.2 Bundle Index",
+  "type": "object",
+  "required": ["version", "manifest", "attestations", "artifacts"],
+  "properties": {
+    "version": { "const": "0.2" },
+    "manifest": { "$ref": "#/$defs/path" },
+    "attestations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/attestation" }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/artifact" }
+    },
+    "datasetEntries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/datasetEntry" }
+    },
+    "schemaCatalog": { "$ref": "#/$defs/path" }
+  },
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "required": ["sha256"],
+      "properties": { "sha256": { "type": "string", "minLength": 64, "maxLength": 64 } },
+      "additionalProperties": false
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "attestation": {
+      "type": "object",
+      "required": ["statementDigest", "path"],
+      "properties": {
+        "statementDigest": { "$ref": "#/$defs/digest" },
+        "path": { "$ref": "#/$defs/path" }
+      },
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["statementDigest", "subjectName", "digest", "path"],
+      "properties": {
+        "statementDigest": { "$ref": "#/$defs/digest" },
+        "subjectName": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "digest": { "$ref": "#/$defs/digest" },
+        "path": { "$ref": "#/$defs/path" }
+      },
+      "additionalProperties": false
+    },
+    "datasetEntry": {
+      "type": "object",
+      "required": ["manifestStatementDigest", "manifestSubjectName", "entryName", "digest", "path"],
+      "properties": {
+        "manifestStatementDigest": { "$ref": "#/$defs/digest" },
+        "manifestSubjectName": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "entryName": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "digest": { "$ref": "#/$defs/digest" },
+        "path": { "$ref": "#/$defs/path" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

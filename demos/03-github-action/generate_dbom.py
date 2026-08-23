@@ -9,7 +9,7 @@ import json
 import os
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def compute_sha256(filepath):
@@ -48,7 +48,7 @@ def generate_dbom(filepath, signer=None, source_uri=None, description=None):
     dbom = {
         "schema_version": "0.1",
         "id": f"dbom-{uuid.uuid4()}",
-        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "created_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source": {
             "uri": source_uri,
             "hash": {"algorithm": "sha256", "value": file_hash},
@@ -63,7 +63,7 @@ def generate_dbom(filepath, signer=None, source_uri=None, description=None):
             {
                 "step": 1,
                 "description": description,
-                "tool": f"makoto-action v0.1",
+                "tool": "makoto-action v0.1",
                 "input_hash": "n/a",
                 "output_hash": file_hash,
             }

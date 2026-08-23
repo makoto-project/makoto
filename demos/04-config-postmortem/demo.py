@@ -4,11 +4,9 @@ Shows how config changes without audit trails create mystery incidents,
 and how DBOM audit entries make them instantly traceable.
 """
 
-import json
 import os
 import sqlite3
 import uuid
-from datetime import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(SCRIPT_DIR, "config_demo.db")
@@ -75,9 +73,9 @@ def part1_no_audit(conn):
         "SELECT value, updated_at FROM app_config WHERE key = 'max_batch_size'"
     ).fetchone()
     print(f"   max_batch_size = {row[0]} (updated: {row[1]})")
-    print(f"   ❌ No record of who changed it or why")
-    print(f"   ❌ No record of the previous value")
-    print(f"   ❌ Mean time to resolution: hours of git-blame and Slack archaeology")
+    print("   ❌ No record of who changed it or why")
+    print("   ❌ No record of the previous value")
+    print("   ❌ Mean time to resolution: hours of git-blame and Slack archaeology")
     print()
 
 
@@ -122,6 +120,7 @@ def part2_with_audit(conn):
 
     # Build the DBOM entry for this config change
     import hashlib
+
     change_str = f"{old_value}→{new_value}|{reason}|{signer}|{change_time}"
     change_hash = hashlib.sha256(change_str.encode()).hexdigest()
 
@@ -151,7 +150,7 @@ def part2_with_audit(conn):
     }
 
     print(f"🔧 Changing max_batch_size: {old_value} → {new_value}")
-    print(f"   📝 DBOM audit entry created automatically")
+    print("   📝 DBOM audit entry created automatically")
     print()
 
     # Apply the change with audit
@@ -160,7 +159,8 @@ def part2_with_audit(conn):
         (new_value, change_time),
     )
     conn.execute(
-        """INSERT INTO config_dbom (id, created_at, config_key, old_value, new_value, reason, signer, hash)
+        """INSERT INTO config_dbom
+           (id, created_at, config_key, old_value, new_value, reason, signer, hash)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             dbom_entry["id"],

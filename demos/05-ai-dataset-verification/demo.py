@@ -7,8 +7,8 @@ hasn't been tampered with before you train on it.
 import hashlib
 import json
 import os
-import tempfile
 import shutil
+import tempfile
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_DIR = os.path.join(SCRIPT_DIR, "datasets")
@@ -34,7 +34,7 @@ def part1_no_verification():
         lines = f.readlines()
 
     print(f"📥 Loading dataset: imagenet_sample.csv ({len(lines) - 1} images)")
-    print(f"   Source: downloaded from shared drive")
+    print("   Source: downloaded from shared drive")
     print()
     print("   ❓ Is this the official dataset?")
     print("   ❓ Has anyone modified the labels?")
@@ -57,8 +57,8 @@ def part2_verified():
     with open(dbom_path) as f:
         dbom = json.load(f)
 
-    print(f"📥 Loading dataset: imagenet_sample.csv")
-    print(f"   DBOM found: imagenet_sample.dbom.json")
+    print("📥 Loading dataset: imagenet_sample.csv")
+    print("   DBOM found: imagenet_sample.dbom.json")
     print()
 
     # Step 1: Verify hash
@@ -80,7 +80,7 @@ def part2_verified():
     signer = dbom["signature"]["signer"]
     print("🔏 Step 2: Signer verification")
     print(f"   Signed by: {signer}")
-    print(f"   ✅ Trusted signer confirmed")
+    print("   ✅ Trusted signer confirmed")
     print()
 
     # Step 3: Show lineage
@@ -121,7 +121,7 @@ def part3_tampered():
         f.write(tampered_content)
 
     print("🦹 Attacker scenario: one label changed (tench → goldfish)")
-    print(f"   Modified 1 of 10 labels — a subtle poisoning attack")
+    print("   Modified 1 of 10 labels — a subtle poisoning attack")
     print()
 
     # Load DBOM

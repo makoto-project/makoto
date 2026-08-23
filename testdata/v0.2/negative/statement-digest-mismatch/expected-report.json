@@ -1,0 +1,16 @@
+{
+  "decision": "deny",
+  "primaryError": "E_STATEMENT_DIGEST",
+  "requiredErrorCodes": ["E_STATEMENT_DIGEST"],
+  "allowedAdditionalErrorCodes": ["E_MANIFEST_SET", "E_REQUIRED_PROFILE_MISSING"],
+  "requiredWarningCodes": [],
+  "allowedAdditionalWarningCodes": [],
+  "checks": {
+    "load-safely": ["pass"], "parse-strictly": ["pass"], "index-payloads": ["fail"],
+    "core-schemas": ["pass"], "signatures": ["pass"], "authorization-thresholds": ["pass"],
+    "metadata-profiles": ["pass"], "authorization": ["pass"], "graph-dependency-artifacts": ["pass"],
+    "graph": ["skipped"], "roots-and-heads": ["skipped"], "completeness-anchor": ["fail"],
+    "freshness-anchors": ["pass"], "artifact-bytes": ["skipped"], "artifact-profiles": ["fail"],
+    "decision": ["pass"]
+  }
+}

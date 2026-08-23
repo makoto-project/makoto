@@ -1,0 +1,1 @@
+{"closureDigest":{"sha256":"57eec614be9b2141ad536f486ff4400b514d79b8b1cc9642a839cf1a39b10794"},"critical":true,"digest":{"sha256":"68169d043c628fda5435cbd7845b02ea3e0d850b7a509c0b35fd304463fffacb"},"id":"https://schemas.example.internal/makoto/customer-public-v1.schema.json","mediaType":"application/json","resources":[],"subjectName":"customers.public.json","target":"artifact"}

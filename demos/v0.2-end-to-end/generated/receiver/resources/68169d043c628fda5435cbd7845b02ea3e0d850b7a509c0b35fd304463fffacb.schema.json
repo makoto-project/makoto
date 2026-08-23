@@ -1,0 +1,16 @@
+{
+  "$schema": "https://usemakoto.dev/schema/v0.2/profile-dialect.schema.json",
+  "$id": "https://schemas.example.internal/makoto/customer-public-v1.schema.json",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["age_band", "customer_id", "marketing_consent", "region"],
+    "properties": {
+      "age_band": { "enum": ["0-17", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"] },
+      "customer_id": { "type": "string", "minLength": 20, "maxLength": 20 },
+      "marketing_consent": { "type": "boolean" },
+      "region": { "type": "string", "minLength": 2, "maxLength": 2 }
+    },
+    "additionalProperties": false
+  }
+}

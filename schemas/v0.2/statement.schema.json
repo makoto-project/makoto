@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/schema/v0.2/statement.schema.json",
+  "title": "Makoto v0.2 in-toto Statement",
+  "type": "object",
+  "required": ["_type", "subject", "predicateType", "predicate"],
+  "properties": {
+    "_type": { "const": "https://in-toto.io/Statement/v1" },
+    "subject": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/subject" }
+    },
+    "predicateType": { "type": "string", "minLength": 1, "maxLength": 4096 },
+    "predicate": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "predicateType": { "const": "https://usemakoto.dev/predicate/v0.2/origin" } } },
+      "then": { "properties": { "predicate": { "$ref": "https://usemakoto.dev/schema/v0.2/origin.schema.json" } } }
+    },
+    {
+      "if": { "properties": { "predicateType": { "const": "https://usemakoto.dev/predicate/v0.2/transform" } } },
+      "then": { "properties": { "predicate": { "$ref": "https://usemakoto.dev/schema/v0.2/transform.schema.json" } } }
+    }
+  ],
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "required": ["sha256"],
+      "properties": { "sha256": { "type": "string", "minLength": 64, "maxLength": 64 } },
+      "additionalProperties": false
+    },
+    "subject": {
+      "type": "object",
+      "required": ["name", "digest"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "digest": { "$ref": "#/$defs/digest" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

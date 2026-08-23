@@ -48,14 +48,14 @@ def part2_with_lineage():
     with open(dbom_path) as f:
         dbom = json.load(f)
 
-    print(f"📄 Found: experiment_v2.dbom.json")
+    print("📄 Found: experiment_v2.dbom.json")
     print(f"   DBOM ID: {dbom['id']}")
     print(f"   Created: {dbom['created_at']}")
     print()
 
     # Show source
     src = dbom["source"]
-    print(f"📦 Source:")
+    print("📦 Source:")
     print(f"   URI:    {src['uri']}")
     print(f"   Hash:   {src['hash']['value'][:16]}...")
     print(f"   Format: {src['format']}")
@@ -63,7 +63,7 @@ def part2_with_lineage():
 
     # Show signature
     sig = dbom["signature"]
-    print(f"🔏 Signature:")
+    print("🔏 Signature:")
     print(f"   Signer: {sig['signer']}")
     print(f"   Algorithm: {sig['algorithm']}")
     print()
@@ -73,7 +73,8 @@ def part2_with_lineage():
     for step in dbom["lineage"]:
         print(f"   Step {step['step']}: {step['description']}")
         print(f"           Tool: {step['tool']}")
-        print(f"           Input:  {step['input_hash'][:16]}{'...' if len(step['input_hash']) > 16 else ''}")
+        input_suffix = "..." if len(step["input_hash"]) > 16 else ""
+        print(f"           Input:  {step['input_hash'][:16]}{input_suffix}")
         print(f"           Output: {step['output_hash'][:16]}...")
         print()
 
@@ -84,18 +85,18 @@ def part2_with_lineage():
         prev_out = dbom["lineage"][i - 1]["output_hash"]
         curr_in = dbom["lineage"][i]["input_hash"]
         if prev_out == curr_in:
-            print(f"   ✅ Step {i} → Step {i+1}: hashes link correctly")
+            print(f"   ✅ Step {i} → Step {i + 1}: hashes link correctly")
         else:
-            print(f"   ❌ Step {i} → Step {i+1}: BROKEN CHAIN")
+            print(f"   ❌ Step {i} → Step {i + 1}: BROKEN CHAIN")
             chain_ok = False
 
     # Verify final output matches source hash
     final_hash = dbom["lineage"][-1]["output_hash"]
     source_hash = dbom["source"]["hash"]["value"]
     if final_hash == source_hash:
-        print(f"   ✅ Final output matches source hash")
+        print("   ✅ Final output matches source hash")
     else:
-        print(f"   ❌ Final output does NOT match source hash")
+        print("   ❌ Final output does NOT match source hash")
         chain_ok = False
 
     print()

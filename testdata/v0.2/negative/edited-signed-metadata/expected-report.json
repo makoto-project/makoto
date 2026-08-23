@@ -1,0 +1,16 @@
+{
+  "decision": "deny",
+  "primaryError": "E_SIGNATURE_INVALID",
+  "requiredErrorCodes": ["E_SIGNATURE_INVALID", "E_SIGNER_UNAUTHORIZED", "E_MANIFEST_SET"],
+  "allowedAdditionalErrorCodes": [],
+  "requiredWarningCodes": [],
+  "allowedAdditionalWarningCodes": [],
+  "checks": {
+    "load-safely": ["pass"], "parse-strictly": ["pass"], "index-payloads": ["pass"],
+    "core-schemas": ["pass"], "signatures": ["fail"], "authorization-thresholds": ["fail"],
+    "metadata-profiles": ["pass"], "authorization": ["fail"], "graph-dependency-artifacts": ["pass"],
+    "graph": ["skipped"], "roots-and-heads": ["skipped"], "completeness-anchor": ["fail"],
+    "freshness-anchors": ["pass"], "artifact-bytes": ["skipped"], "artifact-profiles": ["skipped"],
+    "decision": ["pass"]
+  }
+}
