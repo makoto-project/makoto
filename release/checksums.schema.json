@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://usemakoto.dev/tooling/release/checksums.schema.json",
-  "title": "Makoto core release checksum manifest",
+  "title": "Makoto core candidate or release checksum manifest",
   "type": "object",
   "required": ["version", "tag", "files"],
   "properties": {
     "version": { "const": "1" },
-    "tag": { "const": "v0.2.0" },
+    "tag": { "type": ["string", "null"], "enum": ["v0.2.0", null] },
     "files": {
       "type": "array",
       "minItems": 1,
