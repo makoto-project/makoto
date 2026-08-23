@@ -113,8 +113,10 @@ At the end of the live demo, an independent consumer must be able to say:
 
 ## 5. Non-goals for v0.2
 
-- Community formation, project governance, foundation contribution, or a technical oversight committee.
-- A Docling integration. Docling may later produce or consume Makoto evidence, but it is not part of the core protocol or September 16 acceptance path.
+- A formal governance model, foundation affiliation, or technical oversight committee. Public
+  participation through issues, review, tests, examples, and patches is part of the project, but
+  this protocol candidate does not define organizational authority.
+- Any named third-party integration as part of the core protocol or September 16 acceptance path.
 - A claim that Makoto proves a transformation actually ran exactly as described. v0.2 records authenticated claims; stronger execution isolation is future work.
 - “L3” isolated builders, hardware-backed keys, remote attestation, or control-plane-generated evidence.
 - Transparency logs, global key discovery, certificate authorities, Sigstore integration, or public revocation infrastructure.
