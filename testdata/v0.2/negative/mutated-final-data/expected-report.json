@@ -1,0 +1,16 @@
+{
+  "decision": "deny",
+  "primaryError": "E_ARTIFACT_DIGEST",
+  "requiredErrorCodes": ["E_ARTIFACT_DIGEST"],
+  "allowedAdditionalErrorCodes": [],
+  "requiredWarningCodes": [],
+  "allowedAdditionalWarningCodes": [],
+  "checks": {
+    "load-safely": ["pass"], "parse-strictly": ["pass"], "index-payloads": ["pass"],
+    "core-schemas": ["pass"], "signatures": ["pass"], "authorization-thresholds": ["pass"],
+    "metadata-profiles": ["pass"], "authorization": ["pass"], "graph-dependency-artifacts": ["pass"],
+    "graph": ["pass"], "roots-and-heads": ["pass"], "completeness-anchor": ["pass"],
+    "freshness-anchors": ["pass"], "artifact-bytes": ["fail"], "artifact-profiles": ["pass"],
+    "decision": ["pass"]
+  }
+}

@@ -1,0 +1,2 @@
+src/makoto/unicode/15.0.0/*.txt whitespace=-trailing-space
+testdata/v0.2/unicode/*.txt whitespace=-trailing-space

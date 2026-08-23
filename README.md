@@ -1,172 +1,181 @@
-# Makoto (誠) — Data Bill of Materials
+# Makoto (誠)
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Python 3.6+](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/downloads/)
-[![No dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.svg)]()
-[![Spec site](https://img.shields.io/badge/spec-usemakoto.dev-black.svg)](https://usemakoto.dev)
+Makoto is a source-first, SLSA-like framework for data provenance and integrity. It is
+designed to let a recipient verify:
 
-> **SLSA for data.** Cryptographically signed provenance for every dataset, config, and model artifact — without new infrastructure.
+1. where data was first observed;
+2. every attested transformation from that source to the handed-off artifact;
+3. which cryptographic identities made those claims; and
+4. whether the exact metadata and artifact bytes still match their signed digests.
 
-**[Read the full spec →](https://usemakoto.dev)**
+Makoto v0.2 replaces the v0.1 mutable lineage document with immutable in-toto Statement
+payloads, independently signed DSSE envelopes, a hash-linked provenance DAG, digest-pinned
+organizational JSON Schema profiles, and a separately signed handoff manifest.
 
----
+## Status
 
-## The Problem
+v0.2 is an unreleased release candidate under active implementation. The repository now
+contains the twelve core Draft 2020-12 schemas, digest catalogs, strict DSSE/Ed25519 signing,
+consumer-owned trust policy, hash-linked DAG verification, private organizational profiles,
+pinned Unicode 15.0 handling, the bounded `makotoPattern` vocabulary, and the complete
+September producer-to-consumer demo. It must not yet be described as a released or fully
+conformant protocol: the full Phase 0 coverage matrix, diagnostic trigger coverage, bounded
+worker isolation, media-conflict handling, aggregate report folding, and final release evidence
+are still being completed. The stable diagnostic trigger map and code/step/owner/context report
+contract now live in `testdata/v0.2/diagnostic-map.json` and
+`schemas/v0.2/verification-report.schema.json`; conformance vectors still need to exercise every
+row. Exact dataset-manifest membership, partition digest, and optional size verification are
+implemented, but do not yet cover every resource-limit stratum in the spec.
 
-Data moves through pipelines silently. When something breaks — a poisoned training set, a config change that tanks throughput, a dataset the reviewer can't trace — there's no record of where the data came from, who touched it, or what happened to it.
+The complete project and protocol-design specification is [spec/v0.2.md](spec/v0.2.md). The
+[adversarial review record](docs/v0.2-adversarial-review.md) distinguishes completed reviews,
+excluded timeouts, accepted changes, and the still-open current-revision convergence gate.
+The specification explicitly distinguishes signature validity from signer authorization,
+and graph continuity from completeness or freshness relative to an independent anchor.
 
-Makoto fixes that with a **DBOM (Data Bill of Materials)**: a JSON sidecar that travels with your data and answers three questions:
+## Run the complete proof
 
-1. **Where did this come from?** — source URI + SHA-256 hash
-2. **Who vouches for it?** — signer identity
-3. **How was it produced?** — full lineage chain
-
----
-
-## Start Here: 5 Demos, One Command Each
-
-Pick the scenario that matches your pain:
-
-| # | Demo | Pain Point | Time | Run |
-|---|------|-----------|------|-----|
-| 01 | [Poisoned Pipeline](demos/01-poisoned-pipeline/) | Corrupted data silently enters pipeline | 3 min | `./run.sh` |
-| 02 | [Reproducibility Gap](demos/02-reproducibility-gap/) | "Which dataset version?" is unanswerable | 2 min | `python3 demo.py` |
-| 03 | [GitHub Action](demos/03-github-action/) | No provenance in CI/CD | 2 min | `python3 generate_dbom.py <file>` |
-| 04 | [Config Postmortem](demos/04-config-postmortem/) | Config changed, no one knows who/why | 3 min | `python3 demo.py` |
-| 05 | [AI Dataset Verification](demos/05-ai-dataset-verification/) | Training on unverified data | 2 min | `python3 demo.py` |
-
-**New here?** Start with Demo 05 — it's the most visceral. One changed label, caught instantly.
-
-**Running a 20-minute meeting?** Follow [DEMO_SCRIPT.md](DEMO_SCRIPT.md) for a proven decision-maker walkthrough.
-
----
-
-## Quick Start
+From a clean checkout, install the locked dependencies and run one deterministic command:
 
 ```bash
-git clone https://github.com/makoto-project/makoto
-cd makoto
-
-# Run any demo — no pip install, no Docker
-cd demos/05-ai-dataset-verification && python3 demo.py
-cd demos/01-poisoned-pipeline && ./run.sh
-cd demos/03-github-action && python3 generate_dbom.py yourdata.csv
+uv sync --locked --dev
+./scripts/demo-v0.2.sh --acceptance
 ```
 
-**Requirements:** bash (Demo 01), Python 3.6+ stdlib (Demos 02–05). That's it.
+The demo creates a synthetic source dataset, attests an origin, applies and attests two
+transformations, signs an exact handoff manifest, then verifies the bundle using a separate
+receiver policy and two digest-pinned private schemas. It must produce one `ALLOW` and seven
+expected denials:
 
----
-
-## The DBOM Format
-
-A DBOM is a JSON file. Three sections. No runtime dependency. It lives next to your data.
-
-```json
-{
-  "schema_version": "0.1",
-  "id": "dbom-<uuid>",
-  "created_at": "2025-01-15T10:30:00Z",
-  "source": {
-    "uri": "s3://my-bucket/sensor-data/2025-01-15.csv",
-    "hash": { "algorithm": "sha256", "value": "a1b2c3d4..." },
-    "format": "csv"
-  },
-  "signature": {
-    "algorithm": "sha256",
-    "value": "e5f6a7b8...",
-    "signer": "github:data-eng-team"
-  },
-  "lineage": [
-    {
-      "step": 1,
-      "description": "Raw ingestion from IoT gateway",
-      "tool": "ingestion-service v2.1",
-      "input_hash": "n/a",
-      "output_hash": "a1b2c3d4..."
-    }
-  ]
-}
+```text
+positive: ALLOW (all checks pass)
+mutated-final-data: DENY (E_ARTIFACT_DIGEST)
+statement-digest-mismatch: DENY (E_STATEMENT_DIGEST)
+edited-signed-metadata: DENY (E_SIGNATURE_INVALID)
+removed-predecessor: DENY (E_PREDECESSOR_MISSING)
+rewired-step: DENY (E_SIGNATURE_INVALID)
+private-schema-violation: DENY (E_PROFILE_INVALID)
+unauthorized-signer: DENY (E_SIGNER_UNAUTHORIZED)
 ```
 
-Full JSON Schema: [`dbom_schema.json`](dbom_schema.json)
+Acceptance writes only to the ignored demo `.work/` directory and removes it on success.
+To regenerate the checked display artifacts used by documentation and the website:
 
----
-
-## Makoto Levels
-
-The [Makoto specification](https://usemakoto.dev/spec/) defines three assurance levels:
-
-| Level | What It Guarantees |
-|-------|--------------------|
-| **L1** | A DBOM exists. Origin and hash are recorded. |
-| **L2** | The DBOM is cryptographically signed. Tamper-evident. |
-| **L3** | Provenance is unforgeable. Isolated signing environment. |
-
-Start at L1 — it takes minutes. L2 and L3 add crypto guarantees when your compliance team comes asking.
-
----
-
-## Add to Your CI in 5 Lines
-
-```yaml
-# .github/workflows/dbom.yml
-- uses: makoto-project/makoto/demos/03-github-action@main
-  with:
-    data-path: data/training-set.csv
-    signer: github:${{ github.actor }}
+```bash
+./scripts/demo-v0.2.sh --acceptance --export demos/v0.2-end-to-end/generated
 ```
 
-Every data file push automatically generates a DBOM. See [Demo 03](demos/03-github-action/) for full details.
+The checked-in keys are deterministic, insecure demo material. They are never production
+credentials.
 
----
+## Core schema contract
 
-## How It Compares
+Canonical v0.2 resources live under [`schemas/v0.2/`](schemas/v0.2/):
 
-| Tool | What It Tracks | What It Misses |
-|------|---------------|----------------|
-| DVC / LakeFS | *Which* version of a dataset | Who vouches for it, how it was produced |
-| SLSA | Software artifact provenance | Data — different threat model entirely |
-| Checksums | File integrity | Identity, lineage, chain of custody |
-| **Makoto DBOM** | Origin + integrity + identity + lineage | Nothing — that's the point |
+- DSSE envelope and in-toto statement shapes;
+- origin and transformation predicates;
+- extensible, digest-pinned profile references and the Makoto profile dialect;
+- offline schema catalogs and partitioned dataset manifests;
+- handoff manifests and transport bundle indexes;
+- consumer trust policies; and
+- stable verification reports.
 
----
+Attestation commands accept either compact `--subject name=path` values or closed
+`--subject-binding` JSON objects when a subject name contains `=`. `handoff create` accepts
+both ordinary historical `--artifact-material` and validated dataset-manifest material. It
+refuses any material whose bytes do not match the selected signed subject. Dataset-entry bindings
+add partition bytes only after the mandatory manifest profile, logical entry membership, digest,
+and optional size pass producer-side validation.
 
-## Repository Layout
+A partition-pruned transformation input uses `entryName` and `predecessorMaterial` together. The
+predecessor material is the exact signed dataset-manifest subject; the CLI validates it before it
+signs the transformation. Dataset-entry bytes are stored at
+`artifacts/dataset-entries/<sha256>.bin`, where the path hash covers only the closed logical
+identity `{manifestStatementDigest, manifestSubjectName, entryName}`. The partition digest is
+verified evidence, not part of that path preimage.
 
+`schemas/v0.2/catalog.json` pins the exact bytes of all twelve schema resources. Versioned
+schema bytes will become immutable when v0.2 is released. The historical v0.1 schema and
+demos remain available during migration but are not wire-compatible with v0.2.
+
+## Extensibility model
+
+Makoto core records only portable provenance and integrity facts. A team can keep its own
+JSON Schemas private, identify them with an opaque URI, and pin the exact root and transitive
+closure digests in a signed profile reference. Profiles can validate:
+
+- the complete in-toto statement;
+- an origin or transformation predicate, including organization-specific `extensions`; or
+- actual JSON/NDJSON artifact contents selected by signed subject name and media type.
+
+The receiver resolves schemas offline from its own authenticated catalog. Makoto never treats
+a familiar URL as sufficient identity and never fetches a private schema during verification.
+Portable string constraints use the bounded, non-backtracking `makotoPattern` vocabulary;
+standard regular-expression keywords are intentionally unavailable in organizational profiles.
+
+## What verification means
+
+Makoto establishes that exact bytes match signed claims, that configured keys produced valid
+signatures, that receiver policy authorizes those keys for those claim types, and that the
+complete graph matches an authorized handoff plus independent expectations. It does not prove
+that a source told the truth, that a claimed transformation actually executed, that the data is
+safe or high quality, or that signed metadata is confidential.
+
+## Local validation
+
+Makoto uses Python 3.11 or newer and [`uv`](https://docs.astral.sh/uv/).
+
+```bash
+uv sync --locked --dev
+./scripts/check.sh
 ```
-makoto/
-├── demos/
-│   ├── 01-poisoned-pipeline/     # bash demo, corrupted IoT data
-│   ├── 02-reproducibility-gap/   # Python, research dataset lineage
-│   ├── 03-github-action/         # Reusable GitHub Action + generator
-│   ├── 04-config-postmortem/     # Python + SQLite, audit trail
-│   └── 05-ai-dataset-verification/ # Python, ML dataset tamper detection
-├── dbom_schema.json              # Full JSON Schema for DBOM v0.1
-├── DEMO_SCRIPT.md                # 20-min decision-maker walkthrough
-└── README.md
+
+Regenerate the core catalog after changing a draft schema, then rerun the complete gate:
+
+```bash
+uv run scripts/build_schema_catalog.py
+uv run scripts/generate_unicode_tables.py
+./scripts/check.sh
 ```
 
----
+Both generators are deterministic; checks fail if catalogs or generated Unicode tables differ
+from their authoritative bytes.
 
-## Contributing
+The release checksum manifest covers the portable verifier source, schemas, spec, documentation,
+scripts, tests, conformance inputs, locked environment, and runnable demo. Regenerate it only
+after those inputs are final, then run the full release rehearsal:
 
-Issues, PRs, and new demo scenarios welcome. The format is intentionally simple — if you have a pipeline pain point that a DBOM would have caught, we want to see it.
+```bash
+uv run scripts/release_checksums.py --write
+./scripts/release-check.sh
+```
 
-- Open an issue describing the scenario
-- Fork, add a `demos/NN-your-scenario/` directory with a README and runnable script
-- PR against `main`
+`release/v0.2/checksums.json` is not self-authenticating. A distributor must independently pin
+the reviewed Git tag and peeled commit before relying on the manifest.
 
----
+## Repository layout
 
-## Learn More
+```text
+schemas/v0.2/   canonical v0.2 JSON Schemas and digest catalog
+spec/v0.2.md    complete v0.2 project and protocol specification
+src/makoto/     reference CLI, verifier, crypto, graph, policy, profiles, and reports
+testdata/v0.2/  pinned conformance inputs and expected negative outcomes
+tests/          schema, crypto, graph, policy, pattern, Unicode, and bundle tests
+demos/v0.2-end-to-end/ canonical September producer-to-consumer proof
+docs/           v0.2 architecture, integration boundary, and migration guidance
+```
 
-- **Spec & levels:** [usemakoto.dev](https://usemakoto.dev)
-- **Threat model:** [usemakoto.dev/threats/](https://usemakoto.dev/threats/)
-- **Attestation formats:** [usemakoto.dev/spec/](https://usemakoto.dev/spec/)
-- **Privacy techniques:** [usemakoto.dev/privacy/](https://usemakoto.dev/privacy/)
+## Security boundary
 
----
+A valid signature authenticates a claim; it does not prove the claim is true. Consumer-owned
+policy determines which keys may attest each source, operation, profile, and handoff. Makoto
+uses exact-byte hashes and signatures for integrity, but deletion, rollback, equivocation, and
+freshness require an independently supplied expected head, manifest digest, artifact tuple,
+nonce, age policy, or future transparency anchor.
+
+Makoto metadata is signed, not encrypted. Do not put secrets, credentials, salts, or raw
+personal data in attestations.
 
 ## License
 
-Apache 2.0 — use it, build on it, ship it.
+Apache License 2.0. See [LICENSE](LICENSE).

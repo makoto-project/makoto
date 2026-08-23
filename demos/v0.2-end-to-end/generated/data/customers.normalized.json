@@ -1,0 +1,1 @@
+[{"age":34,"customer_id":"C-1001","email":"alice@example.com","marketing_consent":true,"region":"US"},{"age":67,"customer_id":"C-1002","email":"bob@example.com","marketing_consent":false,"region":"GB"},{"age":17,"customer_id":"C-1003","email":"carol@example.com","marketing_consent":true,"region":"CA"}]

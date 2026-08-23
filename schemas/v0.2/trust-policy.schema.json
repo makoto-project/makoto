@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/schema/v0.2/trust-policy.schema.json",
+  "title": "Makoto v0.2 Consumer Trust Policy",
+  "type": "object",
+  "required": ["version", "keys", "rules", "handoff", "requiredProfiles", "limits"],
+  "properties": {
+    "version": { "const": "0.2" },
+    "keys": {
+      "type": "object",
+      "propertyNames": { "type": "string", "minLength": 71, "maxLength": 71 },
+      "additionalProperties": { "$ref": "#/$defs/key" }
+    },
+    "rules": {
+      "type": "array",
+      "maxItems": 1024,
+      "items": { "$ref": "#/$defs/rule" }
+    },
+    "handoff": { "$ref": "#/$defs/handoffRule" },
+    "requiredProfiles": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/requiredProfile" }
+    },
+    "limits": { "$ref": "#/$defs/limits" }
+  },
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "required": ["sha256"],
+      "properties": { "sha256": { "type": "string", "minLength": 64, "maxLength": 64 } },
+      "additionalProperties": false
+    },
+    "timestamp": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 30
+    },
+    "mediaType": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "keyIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 71, "maxLength": 71 }
+    },
+    "uris": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1, "maxLength": 4096 }
+    },
+    "key": {
+      "type": "object",
+      "required": ["type", "publicKey"],
+      "properties": {
+        "type": { "const": "ed25519" },
+        "publicKey": { "type": "string", "minLength": 60, "maxLength": 60 },
+        "label": { "type": "string", "maxLength": 4096 },
+        "validFrom": { "$ref": "#/$defs/timestamp" },
+        "validUntil": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "profileConstraint": {
+      "type": "object",
+      "required": ["id", "target"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "digest": { "$ref": "#/$defs/digest" },
+        "closureDigest": { "$ref": "#/$defs/digest" },
+        "target": { "enum": ["statement", "predicate"] }
+      },
+      "oneOf": [
+        { "required": ["digest", "closureDigest"] },
+        {
+          "properties": {
+            "digest": false,
+            "closureDigest": false
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "rule": {
+      "type": "object",
+      "required": ["id", "predicateTypes", "authorizedKeyIds", "minimumSignatures"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "predicateTypes": { "$ref": "#/$defs/uris" },
+        "authorizedKeyIds": { "$ref": "#/$defs/keyIds" },
+        "minimumSignatures": { "type": "integer", "minimum": 1 },
+        "sourceKinds": { "$ref": "#/$defs/uris" },
+        "sourceUris": { "$ref": "#/$defs/uris" },
+        "operationTypes": { "$ref": "#/$defs/uris" },
+        "profileConstraints": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/profileConstraint" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "handoffRule": {
+      "type": "object",
+      "required": [
+        "authorizedKeyIds",
+        "minimumSignatures",
+        "requireExpectedManifest",
+        "requireExpectedHead",
+        "requireExpectedArtifacts",
+        "requireRecipient",
+        "requireNonce",
+        "allowReplayableHandoff"
+      ],
+      "properties": {
+        "authorizedKeyIds": { "$ref": "#/$defs/keyIds" },
+        "minimumSignatures": { "type": "integer", "minimum": 1 },
+        "requireExpectedManifest": { "type": "boolean" },
+        "requireExpectedHead": { "type": "boolean" },
+        "requireExpectedArtifacts": { "type": "boolean" },
+        "requireRecipient": { "type": "boolean" },
+        "requireNonce": { "type": "boolean" },
+        "allowReplayableHandoff": { "type": "boolean" },
+        "maxAgeSeconds": { "type": "integer", "minimum": 0, "maximum": 315576000 },
+        "maxFutureSkewSeconds": { "type": "integer", "minimum": 0, "maximum": 315576000 }
+      },
+      "oneOf": [
+        { "required": ["maxAgeSeconds", "maxFutureSkewSeconds"] },
+        {
+          "properties": {
+            "maxAgeSeconds": false,
+            "maxFutureSkewSeconds": false
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "requiredProfile": {
+      "type": "object",
+      "required": ["id", "digest", "closureDigest", "target", "subjectName", "mediaType", "scope"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "digest": { "$ref": "#/$defs/digest" },
+        "closureDigest": { "$ref": "#/$defs/digest" },
+        "target": { "const": "artifact" },
+        "subjectName": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "mediaType": { "$ref": "#/$defs/mediaType" },
+        "scope": { "const": "eachMatchingFinalArtifact" }
+      },
+      "additionalProperties": false
+    },
+    "positiveInteger": { "type": "integer", "minimum": 1 },
+    "limits": {
+      "type": "object",
+      "required": [
+        "maxBundleFiles", "maxMetadataBytes", "maxArtifactBytesPerFile",
+        "maxAggregateArtifactBytes", "maxSnapshotBytes", "maxArtifactValidationBytes",
+        "maxJsonDepth", "maxJsonNumberChars", "maxJsonExponentMagnitude",
+        "maxSchemaBytes", "maxSchemaResources", "maxSchemaEvaluationDepth",
+        "maxSchemaOperations", "maxRegexLength", "profileEvaluationTimeoutSeconds",
+        "profileWorkerMemoryBytes", "maxNdjsonLineBytes", "maxSignaturesTotal",
+        "maxProfileEvaluations", "maxDiagnostics", "maxReportRecords", "maxReportBytes"
+      ],
+      "properties": {
+        "maxBundleFiles": { "type": "integer", "minimum": 1, "maximum": 20000 },
+        "maxMetadataBytes": { "type": "integer", "minimum": 1, "maximum": 268435456 },
+        "maxArtifactBytesPerFile": { "type": "integer", "minimum": 1, "maximum": 1099511627776 },
+        "maxAggregateArtifactBytes": { "type": "integer", "minimum": 1, "maximum": 2199023255552 },
+        "maxSnapshotBytes": { "type": "integer", "minimum": 1, "maximum": 2199023255552 },
+        "maxArtifactValidationBytes": { "type": "integer", "minimum": 1, "maximum": 1073741824 },
+        "maxJsonDepth": { "type": "integer", "minimum": 8, "maximum": 256 },
+        "maxJsonNumberChars": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "maxJsonExponentMagnitude": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxSchemaBytes": { "type": "integer", "minimum": 1, "maximum": 268435456 },
+        "maxSchemaResources": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "maxSchemaEvaluationDepth": { "type": "integer", "minimum": 1, "maximum": 1024 },
+        "maxSchemaOperations": { "type": "integer", "minimum": 1, "maximum": 1000000000 },
+        "maxRegexLength": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "profileEvaluationTimeoutSeconds": { "type": "integer", "minimum": 1, "maximum": 60 },
+        "profileWorkerMemoryBytes": { "type": "integer", "minimum": 1, "maximum": 4294967296 },
+        "maxNdjsonLineBytes": { "type": "integer", "minimum": 1, "maximum": 67108864 },
+        "maxSignaturesTotal": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxProfileEvaluations": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxDiagnostics": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxReportRecords": { "type": "integer", "minimum": 64, "maximum": 200000 },
+        "maxReportBytes": { "type": "integer", "minimum": 65536, "maximum": 268435456 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

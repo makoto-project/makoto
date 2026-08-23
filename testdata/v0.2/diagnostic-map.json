@@ -1,0 +1,1645 @@
+{
+  "version": "0.2",
+  "rows": [
+    {
+      "code": "W_POLICY_RULE_OVERLAP",
+      "step": 0,
+      "triggerId": "w-policy-rule-overlap-step-0-authorization-thresholds",
+      "class": "warning",
+      "owner": "authorization-thresholds",
+      "trigger": "Appendix C W_POLICY_RULE_OVERLAP condition evaluated at Step 0 by authorization-thresholds.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPolicyOverlap",
+      "multiplicityKey": [
+        "lessConstrainedRuleId",
+        "moreConstrainedRuleId"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_BUNDLE_UNSAFE_PATH",
+      "step": 1,
+      "triggerId": "e-bundle-unsafe-path-step-1-load-safely",
+      "class": "error",
+      "owner": "load-safely",
+      "trigger": "Appendix C E_BUNDLE_UNSAFE_PATH condition evaluated at Step 1 by load-safely.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_HANDOFF_REQUIRED",
+      "step": 1,
+      "triggerId": "e-handoff-required-step-1-load-safely",
+      "class": "error",
+      "owner": "load-safely",
+      "trigger": "Appendix C E_HANDOFF_REQUIRED condition evaluated at Step 1 by load-safely.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 1,
+      "triggerId": "e-resource-limit-step-1-load-safely",
+      "class": "error",
+      "owner": "load-safely",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 1 by load-safely.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_BUNDLE_UNSAFE_PATH",
+      "step": 2,
+      "triggerId": "e-bundle-unsafe-path-step-2-parse-strictly",
+      "class": "error",
+      "owner": "parse-strictly",
+      "trigger": "Appendix C E_BUNDLE_UNSAFE_PATH condition evaluated at Step 2 by parse-strictly.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_CORE_SCHEMA",
+      "step": 2,
+      "triggerId": "e-core-schema-step-2-core-schemas",
+      "class": "error",
+      "owner": "core-schemas",
+      "trigger": "Appendix C E_CORE_SCHEMA condition evaluated at Step 2 by core-schemas.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPathOrEvidence",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_ENVELOPE_MALFORMED",
+      "step": 2,
+      "triggerId": "e-envelope-malformed-step-2-parse-strictly",
+      "class": "error",
+      "owner": "parse-strictly",
+      "trigger": "Appendix C E_ENVELOPE_MALFORMED condition evaluated at Step 2 by parse-strictly.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_HANDOFF_REQUIRED",
+      "step": 2,
+      "triggerId": "e-handoff-required-step-2-parse-strictly",
+      "class": "error",
+      "owner": "parse-strictly",
+      "trigger": "Appendix C E_HANDOFF_REQUIRED condition evaluated at Step 2 by parse-strictly.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_JSON_DUPLICATE_KEY",
+      "step": 2,
+      "triggerId": "e-json-duplicate-key-step-2-parse-strictly",
+      "class": "error",
+      "owner": "parse-strictly",
+      "trigger": "Appendix C E_JSON_DUPLICATE_KEY condition evaluated at Step 2 by parse-strictly.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_JSON_INVALID",
+      "step": 2,
+      "triggerId": "e-json-invalid-step-2-parse-strictly",
+      "class": "error",
+      "owner": "parse-strictly",
+      "trigger": "Appendix C E_JSON_INVALID condition evaluated at Step 2 by parse-strictly.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PAYLOAD_TYPE",
+      "step": 2,
+      "triggerId": "e-payload-type-step-2-parse-strictly",
+      "class": "error",
+      "owner": "parse-strictly",
+      "trigger": "Appendix C E_PAYLOAD_TYPE condition evaluated at Step 2 by parse-strictly.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 2,
+      "triggerId": "e-resource-limit-step-2-parse-strictly",
+      "class": "error",
+      "owner": "parse-strictly",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 2 by parse-strictly.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_JSON_DUPLICATE_KEY",
+      "step": 3,
+      "triggerId": "e-json-duplicate-key-step-3-index-payloads",
+      "class": "error",
+      "owner": "index-payloads",
+      "trigger": "Appendix C E_JSON_DUPLICATE_KEY condition evaluated at Step 3 by index-payloads.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_JSON_INVALID",
+      "step": 3,
+      "triggerId": "e-json-invalid-step-3-index-payloads",
+      "class": "error",
+      "owner": "index-payloads",
+      "trigger": "Appendix C E_JSON_INVALID condition evaluated at Step 3 by index-payloads.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 3,
+      "triggerId": "e-resource-limit-step-3-index-payloads",
+      "class": "error",
+      "owner": "index-payloads",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 3 by index-payloads.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_STATEMENT_DIGEST",
+      "step": 3,
+      "triggerId": "e-statement-digest-step-3-index-payloads",
+      "class": "error",
+      "owner": "index-payloads",
+      "trigger": "Appendix C E_STATEMENT_DIGEST condition evaluated at Step 3 by index-payloads.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextStatementDigestMismatch",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_BUNDLE_UNSAFE_PATH",
+      "step": 4,
+      "triggerId": "e-bundle-unsafe-path-step-4-core-schemas",
+      "class": "error",
+      "owner": "core-schemas",
+      "trigger": "Appendix C E_BUNDLE_UNSAFE_PATH condition evaluated at Step 4 by core-schemas.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_CATALOG_INVALID",
+      "step": 4,
+      "triggerId": "e-catalog-invalid-step-4-core-schemas",
+      "class": "error",
+      "owner": "core-schemas",
+      "trigger": "Appendix C E_CATALOG_INVALID condition evaluated at Step 4 by core-schemas.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_CORE_SCHEMA",
+      "step": 4,
+      "triggerId": "e-core-schema-step-4-core-schemas",
+      "class": "error",
+      "owner": "core-schemas",
+      "trigger": "Appendix C E_CORE_SCHEMA condition evaluated at Step 4 by core-schemas.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPathOrEvidence",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_JSON_DUPLICATE_KEY",
+      "step": 4,
+      "triggerId": "e-json-duplicate-key-step-4-core-schemas",
+      "class": "error",
+      "owner": "core-schemas",
+      "trigger": "Appendix C E_JSON_DUPLICATE_KEY condition evaluated at Step 4 by core-schemas.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_JSON_INVALID",
+      "step": 4,
+      "triggerId": "e-json-invalid-step-4-core-schemas",
+      "class": "error",
+      "owner": "core-schemas",
+      "trigger": "Appendix C E_JSON_INVALID condition evaluated at Step 4 by core-schemas.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PREDICATE_SEMANTICS_UNSUPPORTED",
+      "step": 4,
+      "triggerId": "e-predicate-semantics-unsupported-step-4-core-schemas",
+      "class": "error",
+      "owner": "core-schemas",
+      "trigger": "Appendix C E_PREDICATE_SEMANTICS_UNSUPPORTED condition evaluated at Step 4 by core-schemas.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextGraphStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PROFILE_TARGET_MISSING",
+      "step": 4,
+      "triggerId": "e-profile-target-missing-step-4-core-schemas",
+      "class": "error",
+      "owner": "core-schemas",
+      "trigger": "Appendix C E_PROFILE_TARGET_MISSING condition evaluated at Step 4 by core-schemas.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfile",
+      "multiplicityKey": [
+        "statementDigest",
+        "profileId",
+        "profileDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 4,
+      "triggerId": "e-resource-limit-step-4-core-schemas",
+      "class": "error",
+      "owner": "core-schemas",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 4 by core-schemas.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 5,
+      "triggerId": "e-resource-limit-step-5-signatures",
+      "class": "error",
+      "owner": "signatures",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 5 by signatures.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_SIGNATURE_INVALID",
+      "step": 5,
+      "triggerId": "e-signature-invalid-step-5-signatures",
+      "class": "error",
+      "owner": "signatures",
+      "trigger": "Appendix C E_SIGNATURE_INVALID condition evaluated at Step 5 by signatures.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextSignature",
+      "multiplicityKey": [
+        "statementDigest",
+        "keyid"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_SIGNATURE_UNKNOWN",
+      "step": 5,
+      "triggerId": "w-signature-unknown-step-5-signatures",
+      "class": "warning",
+      "owner": "signatures",
+      "trigger": "Appendix C W_SIGNATURE_UNKNOWN condition evaluated at Step 5 by signatures.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextSignature",
+      "multiplicityKey": [
+        "statementDigest",
+        "keyid"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 6,
+      "triggerId": "e-resource-limit-step-6-authorization-thresholds",
+      "class": "error",
+      "owner": "authorization-thresholds",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 6 by authorization-thresholds.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_SIGNER_UNAUTHORIZED",
+      "step": 6,
+      "triggerId": "e-signer-unauthorized-step-6-authorization-thresholds",
+      "class": "error",
+      "owner": "authorization-thresholds",
+      "trigger": "Appendix C E_SIGNER_UNAUTHORIZED condition evaluated at Step 6 by authorization-thresholds.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextEvidenceIdentity",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PROFILE_INVALID",
+      "step": 7,
+      "triggerId": "e-profile-invalid-step-7-metadata-profiles",
+      "class": "error",
+      "owner": "metadata-profiles",
+      "trigger": "Appendix C E_PROFILE_INVALID condition evaluated at Step 7 by metadata-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PROFILE_UNRESOLVED",
+      "step": 7,
+      "triggerId": "e-profile-unresolved-step-7-authorization",
+      "class": "error",
+      "owner": "authorization",
+      "trigger": "Appendix C E_PROFILE_UNRESOLVED condition evaluated at Step 7 by authorization.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PROFILE_UNRESOLVED",
+      "step": 7,
+      "triggerId": "e-profile-unresolved-step-7-metadata-profiles",
+      "class": "error",
+      "owner": "metadata-profiles",
+      "trigger": "Appendix C E_PROFILE_UNRESOLVED condition evaluated at Step 7 by metadata-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 7,
+      "triggerId": "e-resource-limit-step-7-authorization",
+      "class": "error",
+      "owner": "authorization",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 7 by authorization.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 7,
+      "triggerId": "e-resource-limit-step-7-metadata-profiles",
+      "class": "error",
+      "owner": "metadata-profiles",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 7 by metadata-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_PROFILE_INDETERMINATE",
+      "step": 7,
+      "triggerId": "w-profile-indeterminate-step-7-metadata-profiles",
+      "class": "warning",
+      "owner": "metadata-profiles",
+      "trigger": "Appendix C W_PROFILE_INDETERMINATE condition evaluated at Step 7 by metadata-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_PROFILE_RESOURCE_LIMIT",
+      "step": 7,
+      "triggerId": "w-profile-resource-limit-step-7-metadata-profiles",
+      "class": "warning",
+      "owner": "metadata-profiles",
+      "trigger": "Appendix C W_PROFILE_RESOURCE_LIMIT condition evaluated at Step 7 by metadata-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_ARTIFACT_DIGEST",
+      "step": 8,
+      "triggerId": "e-artifact-digest-step-8-graph-dependency-artifacts",
+      "class": "error",
+      "owner": "graph-dependency-artifacts",
+      "trigger": "Appendix C E_ARTIFACT_DIGEST condition evaluated at Step 8 by graph-dependency-artifacts.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextArtifact",
+      "multiplicityKey": [
+        "artifactDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_BUNDLE_UNSAFE_PATH",
+      "step": 8,
+      "triggerId": "e-bundle-unsafe-path-step-8-graph-dependency-artifacts",
+      "class": "error",
+      "owner": "graph-dependency-artifacts",
+      "trigger": "Appendix C E_BUNDLE_UNSAFE_PATH condition evaluated at Step 8 by graph-dependency-artifacts.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_DATASET_MANIFEST_INVALID",
+      "step": 8,
+      "triggerId": "e-dataset-manifest-invalid-step-8-graph-dependency-artifacts",
+      "class": "error",
+      "owner": "graph-dependency-artifacts",
+      "trigger": "Appendix C E_DATASET_MANIFEST_INVALID condition evaluated at Step 8 by graph-dependency-artifacts.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextDataset",
+      "multiplicityKey": [
+        "manifestStatementDigest",
+        "manifestSubjectName"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_DATASET_MANIFEST_REQUIRED",
+      "step": 8,
+      "triggerId": "e-dataset-manifest-required-step-8-graph-dependency-artifacts",
+      "class": "error",
+      "owner": "graph-dependency-artifacts",
+      "trigger": "Appendix C E_DATASET_MANIFEST_REQUIRED condition evaluated at Step 8 by graph-dependency-artifacts.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextDataset",
+      "multiplicityKey": [
+        "manifestStatementDigest",
+        "manifestSubjectName"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PROFILE_INVALID",
+      "step": 8,
+      "triggerId": "e-profile-invalid-step-8-graph-dependency-artifacts",
+      "class": "error",
+      "owner": "graph-dependency-artifacts",
+      "trigger": "Appendix C E_PROFILE_INVALID condition evaluated at Step 8 by graph-dependency-artifacts.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PROFILE_UNRESOLVED",
+      "step": 8,
+      "triggerId": "e-profile-unresolved-step-8-graph-dependency-artifacts",
+      "class": "error",
+      "owner": "graph-dependency-artifacts",
+      "trigger": "Appendix C E_PROFILE_UNRESOLVED condition evaluated at Step 8 by graph-dependency-artifacts.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 8,
+      "triggerId": "e-resource-limit-step-8-graph-dependency-artifacts",
+      "class": "error",
+      "owner": "graph-dependency-artifacts",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 8 by graph-dependency-artifacts.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_ARTIFACT_VALIDATION_LIMIT",
+      "step": 8,
+      "triggerId": "w-artifact-validation-limit-step-8-graph-dependency-artifacts",
+      "class": "warning",
+      "owner": "graph-dependency-artifacts",
+      "trigger": "Appendix C W_ARTIFACT_VALIDATION_LIMIT condition evaluated at Step 8 by graph-dependency-artifacts.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_PROFILE_INDETERMINATE",
+      "step": 8,
+      "triggerId": "w-profile-indeterminate-step-8-graph-dependency-artifacts",
+      "class": "warning",
+      "owner": "graph-dependency-artifacts",
+      "trigger": "Appendix C W_PROFILE_INDETERMINATE condition evaluated at Step 8 by graph-dependency-artifacts.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_EVENT_ID_DUPLICATE",
+      "step": 9,
+      "triggerId": "e-event-id-duplicate-step-9-graph",
+      "class": "error",
+      "owner": "graph",
+      "trigger": "Appendix C E_EVENT_ID_DUPLICATE condition evaluated at Step 9 by graph.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextGraphStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_GRAPH_CYCLE",
+      "step": 9,
+      "triggerId": "e-graph-cycle-step-9-graph",
+      "class": "error",
+      "owner": "graph",
+      "trigger": "Appendix C E_GRAPH_CYCLE condition evaluated at Step 9 by graph.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextGraphStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_INPUT_DIGEST",
+      "step": 9,
+      "triggerId": "e-input-digest-step-9-graph",
+      "class": "error",
+      "owner": "graph",
+      "trigger": "Appendix C E_INPUT_DIGEST condition evaluated at Step 9 by graph.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextGraphStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PREDECESSOR_MISSING",
+      "step": 9,
+      "triggerId": "e-predecessor-missing-step-9-graph",
+      "class": "error",
+      "owner": "graph",
+      "trigger": "Appendix C E_PREDECESSOR_MISSING condition evaluated at Step 9 by graph.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextGraphStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PREDECESSOR_SUBJECT",
+      "step": 9,
+      "triggerId": "e-predecessor-subject-step-9-graph",
+      "class": "error",
+      "owner": "graph",
+      "trigger": "Appendix C E_PREDECESSOR_SUBJECT condition evaluated at Step 9 by graph.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextGraphStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 9,
+      "triggerId": "e-resource-limit-step-9-graph",
+      "class": "error",
+      "owner": "graph",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 9 by graph.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 10,
+      "triggerId": "e-resource-limit-step-10-roots-and-heads",
+      "class": "error",
+      "owner": "roots-and-heads",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 10 by roots-and-heads.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_ROOT_INVALID",
+      "step": 10,
+      "triggerId": "e-root-invalid-step-10-roots-and-heads",
+      "class": "error",
+      "owner": "roots-and-heads",
+      "trigger": "Appendix C E_ROOT_INVALID condition evaluated at Step 10 by roots-and-heads.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextGraphStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_EXPECTED_ARTIFACT",
+      "step": 11,
+      "triggerId": "e-expected-artifact-step-11-freshness-anchors",
+      "class": "error",
+      "owner": "freshness-anchors",
+      "trigger": "Appendix C E_EXPECTED_ARTIFACT condition evaluated at Step 11 by freshness-anchors.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextBundle",
+      "multiplicityKey": [
+        "bundleId"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_EXPECTED_HEAD",
+      "step": 11,
+      "triggerId": "e-expected-head-step-11-freshness-anchors",
+      "class": "error",
+      "owner": "freshness-anchors",
+      "trigger": "Appendix C E_EXPECTED_HEAD condition evaluated at Step 11 by freshness-anchors.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextBundle",
+      "multiplicityKey": [
+        "bundleId"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_EXPECTED_MANIFEST",
+      "step": 11,
+      "triggerId": "e-expected-manifest-step-11-freshness-anchors",
+      "class": "error",
+      "owner": "freshness-anchors",
+      "trigger": "Appendix C E_EXPECTED_MANIFEST condition evaluated at Step 11 by freshness-anchors.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextExpectedActual",
+      "multiplicityKey": [
+        "expected",
+        "actual"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_FRESHNESS_REQUIRED",
+      "step": 11,
+      "triggerId": "e-freshness-required-step-11-freshness-anchors",
+      "class": "error",
+      "owner": "freshness-anchors",
+      "trigger": "Appendix C E_FRESHNESS_REQUIRED condition evaluated at Step 11 by freshness-anchors.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextBundle",
+      "multiplicityKey": [
+        "bundleId"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_HANDOFF_NONCE",
+      "step": 11,
+      "triggerId": "e-handoff-nonce-step-11-freshness-anchors",
+      "class": "error",
+      "owner": "freshness-anchors",
+      "trigger": "Appendix C E_HANDOFF_NONCE condition evaluated at Step 11 by freshness-anchors.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextExpectedActual",
+      "multiplicityKey": [
+        "expected",
+        "actual"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_HANDOFF_RECIPIENT",
+      "step": 11,
+      "triggerId": "e-handoff-recipient-step-11-freshness-anchors",
+      "class": "error",
+      "owner": "freshness-anchors",
+      "trigger": "Appendix C E_HANDOFF_RECIPIENT condition evaluated at Step 11 by freshness-anchors.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextExpectedActual",
+      "multiplicityKey": [
+        "expected",
+        "actual"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_HANDOFF_STALE",
+      "step": 11,
+      "triggerId": "e-handoff-stale-step-11-freshness-anchors",
+      "class": "error",
+      "owner": "freshness-anchors",
+      "trigger": "Appendix C E_HANDOFF_STALE condition evaluated at Step 11 by freshness-anchors.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextBundle",
+      "multiplicityKey": [
+        "bundleId"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_MANIFEST_SET",
+      "step": 11,
+      "triggerId": "e-manifest-set-step-11-completeness-anchor",
+      "class": "error",
+      "owner": "completeness-anchor",
+      "trigger": "Appendix C E_MANIFEST_SET condition evaluated at Step 11 by completeness-anchor.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextManifestSet",
+      "multiplicityKey": [
+        "bundleId"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_REQUIRED_PROFILE_MISSING",
+      "step": 11,
+      "triggerId": "e-required-profile-missing-step-11-completeness-anchor",
+      "class": "error",
+      "owner": "completeness-anchor",
+      "trigger": "Appendix C E_REQUIRED_PROFILE_MISSING condition evaluated at Step 11 by completeness-anchor.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextRequiredProfile",
+      "multiplicityKey": [
+        "profileId",
+        "profileDigest",
+        "subjectName"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 11,
+      "triggerId": "e-resource-limit-step-11-completeness-anchor",
+      "class": "error",
+      "owner": "completeness-anchor",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 11 by completeness-anchor.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 11,
+      "triggerId": "e-resource-limit-step-11-freshness-anchors",
+      "class": "error",
+      "owner": "freshness-anchors",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 11 by freshness-anchors.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_FRESHNESS_NOT_CHECKED",
+      "step": 11,
+      "triggerId": "w-freshness-not-checked-step-11-freshness-anchors",
+      "class": "warning",
+      "owner": "freshness-anchors",
+      "trigger": "Appendix C W_FRESHNESS_NOT_CHECKED condition evaluated at Step 11 by freshness-anchors.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextBundle",
+      "multiplicityKey": [
+        "bundleId"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_ARTIFACT_DIGEST",
+      "step": 12,
+      "triggerId": "e-artifact-digest-step-12-artifact-bytes",
+      "class": "error",
+      "owner": "artifact-bytes",
+      "trigger": "Appendix C E_ARTIFACT_DIGEST condition evaluated at Step 12 by artifact-bytes.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextArtifact",
+      "multiplicityKey": [
+        "artifactDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_ARTIFACT_MISSING",
+      "step": 12,
+      "triggerId": "e-artifact-missing-step-12-artifact-bytes",
+      "class": "error",
+      "owner": "artifact-bytes",
+      "trigger": "Appendix C E_ARTIFACT_MISSING condition evaluated at Step 12 by artifact-bytes.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextArtifactOrPath",
+      "multiplicityKey": [
+        "artifactDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_ARTIFACT_SIZE",
+      "step": 12,
+      "triggerId": "e-artifact-size-step-12-artifact-bytes",
+      "class": "error",
+      "owner": "artifact-bytes",
+      "trigger": "Appendix C E_ARTIFACT_SIZE condition evaluated at Step 12 by artifact-bytes.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextDatasetSize",
+      "multiplicityKey": [
+        "manifestStatementDigest",
+        "manifestSubjectName",
+        "entryName"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_BUNDLE_UNSAFE_PATH",
+      "step": 12,
+      "triggerId": "e-bundle-unsafe-path-step-12-artifact-bytes",
+      "class": "error",
+      "owner": "artifact-bytes",
+      "trigger": "Appendix C E_BUNDLE_UNSAFE_PATH condition evaluated at Step 12 by artifact-bytes.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextPath",
+      "multiplicityKey": [
+        "path"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_DATASET_MANIFEST_INVALID",
+      "step": 12,
+      "triggerId": "e-dataset-manifest-invalid-step-12-artifact-bytes",
+      "class": "error",
+      "owner": "artifact-bytes",
+      "trigger": "Appendix C E_DATASET_MANIFEST_INVALID condition evaluated at Step 12 by artifact-bytes.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextDataset",
+      "multiplicityKey": [
+        "manifestStatementDigest",
+        "manifestSubjectName"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 12,
+      "triggerId": "e-resource-limit-step-12-artifact-bytes",
+      "class": "error",
+      "owner": "artifact-bytes",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 12 by artifact-bytes.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_HISTORICAL_ARTIFACT_NOT_CHECKED",
+      "step": 12,
+      "triggerId": "w-historical-artifact-not-checked-step-12-artifact-bytes",
+      "class": "warning",
+      "owner": "artifact-bytes",
+      "trigger": "Appendix C W_HISTORICAL_ARTIFACT_NOT_CHECKED condition evaluated at Step 12 by artifact-bytes.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextArtifact",
+      "multiplicityKey": [
+        "artifactDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_ARTIFACT_FORMAT",
+      "step": 13,
+      "triggerId": "e-artifact-format-step-13-artifact-profiles",
+      "class": "error",
+      "owner": "artifact-profiles",
+      "trigger": "Appendix C E_ARTIFACT_FORMAT condition evaluated at Step 13 by artifact-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileArtifact",
+      "multiplicityKey": [
+        "statementDigest",
+        "subjectName",
+        "profileId",
+        "profileDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PROFILE_INVALID",
+      "step": 13,
+      "triggerId": "e-profile-invalid-step-13-artifact-profiles",
+      "class": "error",
+      "owner": "artifact-profiles",
+      "trigger": "Appendix C E_PROFILE_INVALID condition evaluated at Step 13 by artifact-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_PROFILE_UNRESOLVED",
+      "step": 13,
+      "triggerId": "e-profile-unresolved-step-13-artifact-profiles",
+      "class": "error",
+      "owner": "artifact-profiles",
+      "trigger": "Appendix C E_PROFILE_UNRESOLVED condition evaluated at Step 13 by artifact-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_REQUIRED_PROFILE_MISSING",
+      "step": 13,
+      "triggerId": "e-required-profile-missing-step-13-artifact-profiles",
+      "class": "error",
+      "owner": "artifact-profiles",
+      "trigger": "Appendix C E_REQUIRED_PROFILE_MISSING condition evaluated at Step 13 by artifact-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextRequiredProfile",
+      "multiplicityKey": [
+        "profileId",
+        "profileDigest",
+        "subjectName"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 13,
+      "triggerId": "e-resource-limit-step-13-artifact-profiles",
+      "class": "error",
+      "owner": "artifact-profiles",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 13 by artifact-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_ARTIFACT_UNPROFILED",
+      "step": 13,
+      "triggerId": "w-artifact-unprofiled-step-13-artifact-profiles",
+      "class": "warning",
+      "owner": "artifact-profiles",
+      "trigger": "Appendix C W_ARTIFACT_UNPROFILED condition evaluated at Step 13 by artifact-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextArtifact",
+      "multiplicityKey": [
+        "artifactDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_ARTIFACT_VALIDATION_LIMIT",
+      "step": 13,
+      "triggerId": "w-artifact-validation-limit-step-13-artifact-profiles",
+      "class": "warning",
+      "owner": "artifact-profiles",
+      "trigger": "Appendix C W_ARTIFACT_VALIDATION_LIMIT condition evaluated at Step 13 by artifact-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "W_PROFILE_INDETERMINATE",
+      "step": 13,
+      "triggerId": "w-profile-indeterminate-step-13-artifact-profiles",
+      "class": "warning",
+      "owner": "artifact-profiles",
+      "trigger": "Appendix C W_PROFILE_INDETERMINATE condition evaluated at Step 13 by artifact-profiles.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextProfileOrStatement",
+      "multiplicityKey": [
+        "statementDigest"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    },
+    {
+      "code": "E_RESOURCE_LIMIT",
+      "step": 14,
+      "triggerId": "e-resource-limit-step-14-decision",
+      "class": "error",
+      "owner": "decision",
+      "trigger": "Appendix C E_RESOURCE_LIMIT condition evaluated at Step 14 by decision.",
+      "contextSchema": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json#/$defs/contextLimit",
+      "multiplicityKey": [
+        "limit"
+      ],
+      "prerequisiteBehavior": {
+        "blockedChecks": [],
+        "emitsWhenBlocked": false
+      },
+      "continuation": {
+        "scope": "continue",
+        "cache": "retain"
+      }
+    }
+  ]
+}
