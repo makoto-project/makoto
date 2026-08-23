@@ -32,6 +32,15 @@ The complete project and protocol-design specification is [spec/v0.2.md](spec/v0
 excluded timeouts, accepted changes, and the still-open current-revision convergence gate.
 The specification explicitly distinguishes signature validity from signer authorization,
 and graph continuity from completeness or freshness relative to an independent anchor.
+The public explanation of why source-to-handoff history matters is at
+[usemakoto.dev/why-lineage/](https://usemakoto.dev/why-lineage/).
+
+Makoto is developed in public under Apache-2.0. Run the proof, bring a real data handoff, file a
+failing case, review the specification or schemas, or submit a tested patch through
+[`makoto-project/makoto`](https://github.com/makoto-project/makoto). The current contribution
+paths are documented at
+[usemakoto.dev/community/](https://usemakoto.dev/community/). Formal governance has not been
+established; public issues, tests, and reviewable changes are the current technical record.
 
 ## Run the complete proof
 
