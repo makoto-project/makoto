@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate or verify the exact Makoto v0.2 release checksum inventory."""
+"""Generate or verify the exact Makoto v0.2 candidate or release checksum inventory."""
 
 from __future__ import annotations
 
@@ -50,7 +50,15 @@ def parse_args() -> argparse.Namespace:
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--check", action="store_true")
     action.add_argument("--write", action="store_true")
-    return parser.parse_args()
+    parser.add_argument(
+        "--tag",
+        choices=("v0.2.0",),
+        help="set only when writing the approved tagged release inventory",
+    )
+    args = parser.parse_args()
+    if args.check and args.tag is not None:
+        parser.error("--tag can only be combined with --write")
+    return args
 
 
 def included_paths(root: Path = ROOT) -> tuple[str, ...]:
@@ -74,10 +82,10 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build_manifest(root: Path = ROOT) -> dict[str, Any]:
+def build_manifest(root: Path = ROOT, *, tag: str | None = None) -> dict[str, Any]:
     return {
         "version": "1",
-        "tag": "v0.2.0",
+        "tag": tag,
         "files": [
             {"path": relative, "digest": {"sha256": sha256(root / relative)}}
             for relative in included_paths(root)
@@ -123,7 +131,7 @@ def verify_manifest(root: Path = ROOT) -> None:
         raise ChecksumError("checksum paths are not sorted and unique")
     if any(path != unicodedata.normalize("NFC", path) for path in paths):
         raise ChecksumError("checksum paths must be NFC")
-    expected = build_manifest(root)
+    expected = build_manifest(root, tag=value["tag"])
     if value != expected:
         raise ChecksumError("checksum inclusion set or file digests differ")
     if (root / "release/v0.2/checksums.json").read_bytes() != canonical_bytes(value):
@@ -134,7 +142,7 @@ def main() -> int:
     args = parse_args()
     if args.write:
         MANIFEST.parent.mkdir(parents=True, exist_ok=True)
-        MANIFEST.write_bytes(canonical_bytes(build_manifest()))
+        MANIFEST.write_bytes(canonical_bytes(build_manifest(tag=args.tag)))
         print(f"wrote {MANIFEST.relative_to(ROOT)}")
     else:
         verify_manifest()
