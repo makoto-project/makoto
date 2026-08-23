@@ -56,5 +56,4 @@ The positive flow demonstrates the three questions at Makoto's center:
 
 The negative suite then proves that altered data, altered metadata, a missing
 step, a rewired step, a private-schema violation, and an unauthorized signer
-are denied. Docling is complementary document-processing software; it is not a
-Makoto protocol dependency.
+are denied. No named third-party tool is a Makoto protocol dependency.
