@@ -146,7 +146,7 @@ uv run makoto report level report.json --require L3
 ```
 
 The command reads a report written by `makoto verify bundle --json`, prints the level reached, and
-exits 1 when the required level is not met. No level claims evidence is unforgeable.
+exits 1 when the required level is not met. No level claims that a signer told the truth.
 
 ## Local validation
 
