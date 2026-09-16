@@ -1,0 +1,26 @@
+# Pinned action digests and a locked dependency set only stay current if
+# something proposes the updates. Both ecosystems open pull requests against
+# main, where scripts/check.sh gates them.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: deps
+    groups:
+      python:
+        patterns:
+          - "*"
