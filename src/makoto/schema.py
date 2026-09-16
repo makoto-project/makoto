@@ -1375,6 +1375,121 @@ def semantic_violations(schema_name: str, instance: Mapping[str, Any]) -> list[C
                         f"required profiles disagree on media type for {subject_name!r}",
                     )
                 )
+        summary = instance.get("verificationSummary")
+        if summary is not None:
+            for field in ("resourceUri",):
+                if not _absolute_uri(str(summary[field])):
+                    violations.append(
+                        CoreViolation(f"$.verificationSummary.{field}", "URI is invalid")
+                    )
+            summary_policy = summary["summaryPolicy"]
+            if not _absolute_uri(str(summary_policy["uri"])):
+                violations.append(
+                    CoreViolation("$.verificationSummary.summaryPolicy.uri", "URI is invalid")
+                )
+            violations.extend(
+                _digest_violations(
+                    summary_policy["digest"],
+                    "$.verificationSummary.summaryPolicy.digest",
+                )
+            )
+            for field in ("requiredVerifiedLevels", "requiredProperties"):
+                values = summary[field]
+                if values != sorted(values, key=str.encode) or len(values) != len(set(values)):
+                    violations.append(
+                        CoreViolation(
+                            f"$.verificationSummary.{field}",
+                            "array must be sorted and unique",
+                        )
+                    )
+            verifiers = summary["verifiers"]
+            violations.extend(
+                _sorted_unique(
+                    verifiers,
+                    lambda item: (str(item["id"]).encode(),),
+                    "$.verificationSummary.verifiers",
+                )
+            )
+            for index, verifier in enumerate(verifiers):
+                path = f"$.verificationSummary.verifiers[{index}]"
+                for field in ("id", "verifierId", "resourceUri"):
+                    if not _absolute_uri(str(verifier[field])):
+                        violations.append(CoreViolation(f"{path}.{field}", "URI is invalid"))
+                authorized = verifier["authorizedKeyIds"]
+                if authorized != sorted(authorized, key=str.encode) or len(authorized) != len(
+                    set(authorized)
+                ):
+                    violations.append(
+                        CoreViolation(
+                            f"{path}.authorizedKeyIds", "key IDs must be sorted and unique"
+                        )
+                    )
+                if not set(authorized).issubset(trust_key_ids):
+                    violations.append(CoreViolation(f"{path}.authorizedKeyIds", "unknown key ID"))
+                if verifier["minimumSignatures"] > len(set(authorized)):
+                    violations.append(
+                        CoreViolation(
+                            f"{path}.minimumSignatures",
+                            "threshold exceeds authorized keys",
+                        )
+                    )
+                levels = verifier["allowedVerifiedLevels"]
+                if levels != sorted(levels, key=str.encode) or len(levels) != len(set(levels)):
+                    violations.append(
+                        CoreViolation(
+                            f"{path}.allowedVerifiedLevels",
+                            "array must be sorted and unique",
+                        )
+                    )
+                assessment_policy = verifier["policy"]
+                if not _absolute_uri(str(assessment_policy["uri"])):
+                    violations.append(CoreViolation(f"{path}.policy.uri", "URI is invalid"))
+                violations.extend(
+                    _digest_violations(assessment_policy["digest"], f"{path}.policy.digest")
+                )
+                profiles = verifier.get("requiredProfiles", [])
+                violations.extend(
+                    _sorted_unique(profiles, _profile_key, f"{path}.requiredProfiles")
+                )
+                for profile_index, profile in enumerate(profiles):
+                    profile_path = f"{path}.requiredProfiles[{profile_index}]"
+                    if not _fragmentless_absolute_uri(str(profile["id"])):
+                        violations.append(
+                            CoreViolation(f"{profile_path}.id", "schema ID is invalid")
+                        )
+                    violations.extend(
+                        _digest_violations(profile["digest"], f"{profile_path}.digest")
+                    )
+                    violations.extend(
+                        _digest_violations(
+                            profile["closureDigest"], f"{profile_path}.closureDigest"
+                        )
+                    )
+                controls = verifier.get("requiredControlEvidence", [])
+                violations.extend(
+                    _sorted_unique(
+                        controls,
+                        lambda item: (
+                            str(item["uri"]).encode(),
+                            str(item["digest"]["sha256"]).encode(),
+                        ),
+                        f"{path}.requiredControlEvidence",
+                    )
+                )
+                for control_index, control in enumerate(controls):
+                    control_path = f"{path}.requiredControlEvidence[{control_index}]"
+                    if not _absolute_uri(str(control["uri"])):
+                        violations.append(CoreViolation(f"{control_path}.uri", "URI is invalid"))
+                    violations.extend(
+                        _digest_violations(control["digest"], f"{control_path}.digest")
+                    )
+                if "MAKOTO_ORIGIN_LEVEL_3" in levels and not profiles and not controls:
+                    violations.append(
+                        CoreViolation(
+                            path,
+                            "Origin L3 requires a profile or control-evidence pin",
+                        )
+                    )
     return violations
 
 

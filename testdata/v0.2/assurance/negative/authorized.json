@@ -1,0 +1,1 @@
+{"case":"authorized","expectedDiagnostic":"E_PROPERTY_AUTHORIZED","mutation":"authorization-check-fail","target":"MAKOTO_AUTHORIZED"}

@@ -1,0 +1,1 @@
+{"case":"graph-complete","expectedDiagnostic":"E_PROPERTY_GRAPH_COMPLETE","mutation":"completeness-anchor-fail","target":"MAKOTO_GRAPH_COMPLETE"}

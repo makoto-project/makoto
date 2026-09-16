@@ -1,0 +1,1 @@
+{"case":"freshness-anchored","expectedDiagnostic":"E_PROPERTY_FRESHNESS_ANCHORED","mutation":"freshness-unanchored","target":"MAKOTO_FRESHNESS_ANCHORED"}

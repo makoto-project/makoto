@@ -1,0 +1,1 @@
+{"case":"origin-l3","expectedDiagnostic":"E_ORIGIN_LEVEL_3","mutation":"required-profile-missing","target":"MAKOTO_ORIGIN_LEVEL_3"}

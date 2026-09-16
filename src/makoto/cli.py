@@ -15,6 +15,15 @@ from typing import Any, Never, cast
 from urllib.parse import urlsplit
 
 from makoto import __version__
+from makoto.assurance import (
+    ReproductionEvidence,
+    create_assessment_vsa,
+    create_summary_vsa,
+    descriptor_for_bytes,
+    evaluate_summary,
+    load_run_evidence,
+    load_vsa_evidence,
+)
 from makoto.bundle import (
     ArtifactMaterialSource,
     BundleError,
@@ -64,15 +73,20 @@ _REPEATABLE_OPTIONS = frozenset(
     {
         "--artifact-binding",
         "--artifact-material",
+        "--assessment",
+        "--control-evidence",
         "--dataset-entry-binding",
         "--expected-artifact",
         "--expected-head",
         "--external-profile",
         "--head",
+        "--hardware-evidence",
         "--input-binding",
+        "--input-attestation",
         "--key",
         "--profile",
         "--required-profile-binding",
+        "--reproduction-binding",
         "--schema-catalog",
         "--subject",
         "--subject-binding",
@@ -243,6 +257,38 @@ def _parser() -> argparse.ArgumentParser:
     policy_check.add_argument("--policy", type=Path, required=True)
     policy_check.add_argument("--json", action="store_true")
     policy_check.set_defaults(handler=_cmd_policy_check)
+
+    vsa = commands.add_parser("vsa")
+    vsa_commands = vsa.add_subparsers(dest="vsa_command", required=True)
+    vsa_assess = vsa_commands.add_parser("assess")
+    vsa_assess.add_argument("--track", choices=("origin", "transform"), required=True)
+    vsa_assess.add_argument("--level", type=int, choices=(2, 3), required=True)
+    vsa_assess.add_argument("--input-attestation", type=Path, action="append", required=True)
+    vsa_assess.add_argument("--control-evidence", type=Path, action="append", default=[])
+    vsa_assess.add_argument("--hardware-evidence", type=Path, action="append", default=[])
+    vsa_assess.add_argument("--verifier-id", required=True)
+    vsa_assess.add_argument("--resource-uri", required=True)
+    vsa_assess.add_argument("--policy-uri", required=True)
+    vsa_assess.add_argument("--policy-digest", type=_digest_flag, required=True)
+    vsa_assess.add_argument("--time-verified")
+    vsa_assess.add_argument("--key", type=Path, action="append", required=True)
+    vsa_assess.add_argument("--out", type=Path, required=True)
+    vsa_assess.add_argument("--force", action="store_true")
+    vsa_assess.set_defaults(handler=_cmd_vsa_assess)
+
+    vsa_summarize = vsa_commands.add_parser("summarize")
+    vsa_summarize.add_argument("--report", type=Path, required=True)
+    vsa_summarize.add_argument("--attestations", type=Path, required=True)
+    vsa_summarize.add_argument("--policy", type=Path, required=True)
+    vsa_summarize.add_argument("--assessment", type=Path, action="append", default=[])
+    vsa_summarize.add_argument("--reproduction-binding", type=Path, action="append", default=[])
+    vsa_summarize.add_argument("--verifier-id", required=True)
+    vsa_summarize.add_argument("--time-verified")
+    vsa_summarize.add_argument("--key", type=Path, action="append", required=True)
+    vsa_summarize.add_argument("--evaluation-out", type=Path)
+    vsa_summarize.add_argument("--out", type=Path, required=True)
+    vsa_summarize.add_argument("--force", action="store_true")
+    vsa_summarize.set_defaults(handler=_cmd_vsa_summarize)
     return parser
 
 
@@ -722,6 +768,124 @@ def _cmd_policy_check(args: argparse.Namespace) -> int:
     else:
         print("valid")
     return 0
+
+
+def _cmd_vsa_assess(args: argparse.Namespace) -> int:
+    predicate_type = (
+        "https://usemakoto.dev/predicate/v0.2/origin"
+        if args.track == "origin"
+        else "https://usemakoto.dev/predicate/v0.2/transform"
+    )
+    subjects: list[dict[str, Any]] = []
+    input_descriptors: list[dict[str, Any]] = []
+    for path in args.input_attestation:
+        raw = path.read_bytes()
+        attestation = load_attestation(path, repository_root=REPOSITORY_ROOT)
+        if attestation.statement["predicateType"] != predicate_type:
+            raise CliInputError("assessment input does not belong to the selected track")
+        subjects.extend(attestation.statement["subject"])
+        digest = sha256_bytes(raw)
+        input_descriptors.append(
+            descriptor_for_bytes(f"urn:makoto:attestation:sha256:{digest}", raw)
+        )
+    input_descriptors.extend(_evidence_descriptors(args.control_evidence))
+    hardware = _evidence_descriptors(args.hardware_evidence)
+    envelope = create_assessment_vsa(
+        track=args.track,
+        level=args.level,
+        subjects=subjects,
+        input_attestations=input_descriptors,
+        verifier_id=args.verifier_id,
+        resource_uri=args.resource_uri,
+        policy={"uri": args.policy_uri, "digest": args.policy_digest},
+        time_verified=args.time_verified or _now_timestamp(),
+        signing_keys=_signing_keys(args.key),
+        repository_root=REPOSITORY_ROOT,
+        hardware_evidence=hardware,
+    )
+    _write_json(args.out, envelope, force=args.force)
+    return 0
+
+
+def _cmd_vsa_summarize(args: argparse.Namespace) -> int:
+    if args.evaluation_out is not None and args.evaluation_out.resolve() == args.out.resolve():
+        raise CliInputError("VSA and evaluation outputs must be different files")
+    policy = TrustPolicy.from_path(args.policy, repository_root=REPOSITORY_ROOT)
+    run = load_run_evidence(args.report, args.attestations, repository_root=REPOSITORY_ROOT)
+    assessments = tuple(
+        load_vsa_evidence(path, repository_root=REPOSITORY_ROOT) for path in args.assessment
+    )
+    reproductions = tuple(_reproduction_evidence(path) for path in args.reproduction_binding)
+    evaluation = evaluate_summary(
+        run=run,
+        policy=policy,
+        assessments=assessments,
+        reproductions=reproductions,
+    )
+    if args.evaluation_out is not None:
+        _write_json(
+            args.evaluation_out,
+            {
+                "passed": evaluation.passed,
+                "verifiedLevels": list(evaluation.verified_levels),
+                "diagnostics": list(evaluation.diagnostics),
+            },
+            force=args.force,
+        )
+    configuration = policy.value.get("verificationSummary")
+    if not isinstance(configuration, dict):
+        raise CliInputError("trust policy has no verificationSummary configuration")
+    envelope = create_summary_vsa(
+        evaluation=evaluation,
+        run=run,
+        assessments=assessments,
+        reproductions=reproductions,
+        verifier_id=args.verifier_id,
+        resource_uri=configuration["resourceUri"],
+        policy=configuration["summaryPolicy"],
+        time_verified=args.time_verified or _now_timestamp(),
+        signing_keys=_signing_keys(args.key),
+        repository_root=REPOSITORY_ROOT,
+    )
+    _write_json(args.out, envelope, force=args.force)
+    return 0 if evaluation.passed else 1
+
+
+def _evidence_descriptors(paths: list[Path]) -> list[dict[str, Any]]:
+    descriptors: list[dict[str, Any]] = []
+    for binding_path in paths:
+        binding = _binding_object(binding_path, required={"uri", "path"})
+        evidence_path = binding_path.parent / binding["path"]
+        if evidence_path.is_symlink() or not evidence_path.is_file():
+            raise CliInputError(f"evidence path is not a real file: {evidence_path}")
+        descriptors.append(descriptor_for_bytes(binding["uri"], evidence_path.read_bytes()))
+    return descriptors
+
+
+def _reproduction_evidence(path: Path) -> ReproductionEvidence:
+    binding = _strict_object(path)
+    if set(binding) != {"report", "attestations", "assessments"}:
+        raise CliInputError("reproduction binding has the wrong shape")
+    if any(
+        not isinstance(binding[field], str) or not binding[field]
+        for field in ("report", "attestations")
+    ):
+        raise CliInputError("reproduction report and attestations must be nonempty paths")
+    if not isinstance(binding["assessments"], list) or any(
+        not isinstance(item, str) or not item for item in binding["assessments"]
+    ):
+        raise CliInputError("reproduction assessments must be an array of paths")
+    base = path.parent
+    run = load_run_evidence(
+        base / binding["report"],
+        base / binding["attestations"],
+        repository_root=REPOSITORY_ROOT,
+    )
+    assessments = tuple(
+        load_vsa_evidence(base / item, repository_root=REPOSITORY_ROOT)
+        for item in binding["assessments"]
+    )
+    return ReproductionEvidence(run=run, assessments=assessments)
 
 
 def _subjects(values: list[tuple[str, str | Path]]) -> list[Artifact]:

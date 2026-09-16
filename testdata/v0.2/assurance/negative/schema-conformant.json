@@ -1,0 +1,1 @@
+{"case":"schema-conformant","expectedDiagnostic":"E_PROPERTY_SCHEMA_CONFORMANT","mutation":"required-profile-fail","target":"MAKOTO_SCHEMA_CONFORMANT"}
