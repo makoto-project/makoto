@@ -37,6 +37,7 @@ from makoto.dsse import (
     pae,
     spki_from_pem,
 )
+from makoto.levels import LEVEL_NAMES, assurance_level, level_rank
 from makoto.model import Artifact, Attestation, TransformationInput, create_origin, create_transform
 from makoto.policy import TrustPolicy
 from makoto.report import report_bytes
@@ -243,6 +244,14 @@ def _parser() -> argparse.ArgumentParser:
     policy_check.add_argument("--policy", type=Path, required=True)
     policy_check.add_argument("--json", action="store_true")
     policy_check.set_defaults(handler=_cmd_policy_check)
+
+    report = commands.add_parser("report")
+    report_commands = report.add_subparsers(dest="report_command", required=True)
+    report_level = report_commands.add_parser("level")
+    report_level.add_argument("report", type=Path)
+    report_level.add_argument("--require", choices=LEVEL_NAMES)
+    report_level.add_argument("--json", action="store_true")
+    report_level.set_defaults(handler=_cmd_report_level)
     return parser
 
 
@@ -722,6 +731,36 @@ def _cmd_policy_check(args: argparse.Namespace) -> int:
     else:
         print("valid")
     return 0
+
+
+def _cmd_report_level(args: argparse.Namespace) -> int:
+    report = strict_json_loads(args.report.read_bytes())
+    validate_core("verification-report", report, repository_root=REPOSITORY_ROOT)
+    assert isinstance(report, dict)
+    result = assurance_level(report)
+    meets = args.require is None or level_rank(result["level"]) >= level_rank(args.require)
+    if args.require is not None:
+        result["required"] = args.require
+        result["meetsRequired"] = meets
+    if args.json:
+        _emit(result, json_output=True)
+    else:
+        blocked_by: str | None = None
+        for entry in result["levels"]:
+            reasons = [f"{item['id']} {item['status']}" for item in entry["unmetChecks"]]
+            if entry["decisionRequired"] and result["decision"] != "allow":
+                reasons.append(f"decision {result['decision']}")
+            if not reasons and not entry["satisfied"] and blocked_by is not None:
+                reasons.append(f"requires {blocked_by}")
+            status = "PASS" if entry["satisfied"] else "FAIL"
+            detail = f": {', '.join(reasons)}" if reasons else ""
+            print(f"{status:11} {entry['level']} {entry['title']}{detail}")
+            if not entry["satisfied"] and blocked_by is None:
+                blocked_by = entry["level"]
+        print(f"{'LEVEL':11} {result['level'] or 'none'}")
+        if args.require is not None:
+            print(f"{'REQUIRED':11} {args.require} {'met' if meets else 'not met'}")
+    return 0 if meets else 1
 
 
 def _subjects(values: list[tuple[str, str | Path]]) -> list[Artifact]:

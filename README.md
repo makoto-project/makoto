@@ -130,6 +130,24 @@ complete graph matches an authorized handoff plus independent expectations. It d
 that a source told the truth, that a claimed transformation actually executed, that the data is
 safe or high quality, or that signed metadata is confidential.
 
+### Assurance levels
+
+Like SLSA, Makoto names cumulative levels. Each is a fixed set of verification-report checks
+(specification Section 8.3), so a receiver can require a level and still see which check fell short:
+
+| Level | Meaning |
+| --- | --- |
+| L1 | Provenance is authentic: well-formed statements signed by configured keys. |
+| L2 | Provenance is authorized and complete: authorized signers, a continuous graph, a matching signed handoff, and matching received bytes. |
+| L3 | Provenance is anchored: L2 plus an independent freshness anchor and an `allow` decision. |
+
+```console
+uv run makoto report level report.json --require L3
+```
+
+The command reads a report written by `makoto verify bundle --json`, prints the level reached, and
+exits 1 when the required level is not met. No level claims evidence is unforgeable.
+
 ## Local validation
 
 Makoto uses Python 3.11 or newer and [`uv`](https://docs.astral.sh/uv/).
