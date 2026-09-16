@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
 dependencies = [
-  "cryptography>=45,<47",
+  "cryptography>=45,<51",
   "jsonschema>=4.23,<5",
   "referencing>=0.35,<1",
   "rfc8785>=0.1.4,<1",
@@ -21,8 +21,8 @@ makoto = "makoto.cli:main"
 
 [dependency-groups]
 dev = [
-  "mypy>=1.17,<2",
-  "pytest>=8.4,<9",
+  "mypy>=1.17,<3",
+  "pytest>=8.4,<10",
   "ruff>=0.12,<1",
   "types-jsonschema>=4.25,<5",
 ]
