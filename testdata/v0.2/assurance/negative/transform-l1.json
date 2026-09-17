@@ -1,0 +1,1 @@
+{"case":"transform-l1","expectedDiagnostic":"E_TRANSFORM_LEVEL_1","mutation":"graph-check-fail","target":"MAKOTO_TRANSFORM_LEVEL_1"}

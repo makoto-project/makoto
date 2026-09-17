@@ -1,0 +1,41 @@
+{
+  "$schema": "https://usemakoto.dev/schema/v0.2/profile-dialect.schema.json",
+  "$id": "https://usemakoto.dev/profiles/v0.2/origin-l3-reference-v1.schema.json",
+  "title": "Makoto Origin L3 reference capture controls",
+  "type": "object",
+  "required": ["event", "source", "extensions"],
+  "properties": {
+    "event": {
+      "type": "object",
+      "required": ["occurredAt"]
+    },
+    "source": {
+      "type": "object",
+      "required": ["uri"]
+    },
+    "extensions": {
+      "type": "object",
+      "required": ["https://usemakoto.dev/profile/origin-l3/v1"],
+      "properties": {
+        "https://usemakoto.dev/profile/origin-l3/v1": {
+          "type": "object",
+          "required": [
+            "sourceRecordOrDeviceId",
+            "ingestedAt",
+            "runId",
+            "approver",
+            "freshnessSloSeconds"
+          ],
+          "properties": {
+            "sourceRecordOrDeviceId": { "type": "string", "minLength": 1 },
+            "ingestedAt": { "type": "string", "minLength": 20, "maxLength": 30 },
+            "runId": { "type": "string", "minLength": 1 },
+            "approver": { "type": "string", "minLength": 1 },
+            "freshnessSloSeconds": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  }
+}

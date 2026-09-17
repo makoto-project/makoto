@@ -21,6 +21,7 @@
       "type": "array",
       "items": { "$ref": "#/$defs/requiredProfile" }
     },
+    "verificationSummary": { "$ref": "#/$defs/verificationSummary" },
     "limits": { "$ref": "#/$defs/limits" }
   },
   "$defs": {
@@ -146,6 +147,99 @@
         "subjectName": { "type": "string", "minLength": 1, "maxLength": 4096 },
         "mediaType": { "$ref": "#/$defs/mediaType" },
         "scope": { "const": "eachMatchingFinalArtifact" }
+      },
+      "additionalProperties": false
+    },
+    "resourceDescriptor": {
+      "type": "object",
+      "required": ["uri", "digest"],
+      "properties": {
+        "uri": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "digest": { "$ref": "#/$defs/digest" }
+      },
+      "additionalProperties": false
+    },
+    "assessmentProfile": {
+      "type": "object",
+      "required": ["id", "digest", "closureDigest", "target"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "digest": { "$ref": "#/$defs/digest" },
+        "closureDigest": { "$ref": "#/$defs/digest" },
+        "target": { "enum": ["statement", "predicate"] }
+      },
+      "additionalProperties": false
+    },
+    "vsaVerifier": {
+      "type": "object",
+      "required": [
+        "id", "verifierId", "authorizedKeyIds", "minimumSignatures", "policy", "resourceUri",
+        "allowedVerifiedLevels", "independenceGroup"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "verifierId": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "authorizedKeyIds": { "$ref": "#/$defs/keyIds" },
+        "minimumSignatures": { "type": "integer", "minimum": 1 },
+        "policy": { "$ref": "#/$defs/resourceDescriptor" },
+        "resourceUri": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "allowedVerifiedLevels": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "MAKOTO_ORIGIN_LEVEL_2", "MAKOTO_ORIGIN_LEVEL_3",
+              "MAKOTO_TRANSFORM_LEVEL_2", "MAKOTO_TRANSFORM_LEVEL_3"
+            ]
+          }
+        },
+        "independenceGroup": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "requiredProfiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/assessmentProfile" }
+        },
+        "requiredControlEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/resourceDescriptor" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "verificationSummary": {
+      "type": "object",
+      "required": [
+        "resourceUri", "summaryPolicy", "requiredVerifiedLevels",
+        "requiredProperties", "verifiers"
+      ],
+      "properties": {
+        "resourceUri": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "summaryPolicy": { "$ref": "#/$defs/resourceDescriptor" },
+        "requiredVerifiedLevels": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "MAKOTO_ORIGIN_LEVEL_1", "MAKOTO_ORIGIN_LEVEL_2",
+              "MAKOTO_ORIGIN_LEVEL_3", "MAKOTO_TRANSFORM_LEVEL_1",
+              "MAKOTO_TRANSFORM_LEVEL_2", "MAKOTO_TRANSFORM_LEVEL_3"
+            ]
+          }
+        },
+        "requiredProperties": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "MAKOTO_AUTHORIZED", "MAKOTO_GRAPH_COMPLETE",
+              "MAKOTO_FRESHNESS_ANCHORED", "MAKOTO_SCHEMA_CONFORMANT",
+              "MAKOTO_REPRODUCED"
+            ]
+          }
+        },
+        "verifiers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/vsaVerifier" }
+        }
       },
       "additionalProperties": false
     },

@@ -122,6 +122,34 @@ a familiar URL as sufficient identity and never fetches a private schema during 
 Portable string constraints use the bounded, non-backtracking `makotoPattern` vocabulary;
 standard regular-expression keywords are intentionally unavailable in organizational profiles.
 
+## Assurance model
+
+Makoto follows SLSA's structure instead of turning receiver checks into a score. Two cumulative
+producer tracks describe how evidence was created:
+
+| Track | L1 | L2 | L3 |
+|---|---|---|---|
+| Origin | Traceable capture | Platform-authenticated capture | Policy-controlled capture |
+| Transform | Traceable execution | Platform-authenticated execution | Hardened execution |
+
+Receiver results are separate verified properties: authorization, graph completeness, anchored
+freshness, schema conformance, and strict reproduction. `makoto vsa summarize` evaluates the
+track evidence and properties and emits a signed SLSA v1 Verification Summary Attestation. It
+uses exact verifier keys, assessment-policy digests, resource URIs, required claims, and
+reproduction independence groups from the existing consumer trust policy. There is no opaque
+score. `--evaluation-out` optionally writes the deterministic levels, properties, and diagnostic
+codes beside the standard VSA without adding Makoto-only fields to the SLSA predicate.
+
+`makoto vsa assess` lets a trusted platform or assessor sign an Origin L2/L3 or Transform L2/L3
+claim over exact statement envelopes. Transform L3 additionally requires digests and URIs for
+the raw hardware evidence the assessor evaluated; Makoto deliberately does not invent a TPM or
+TEE quote format. The standard digest-pinned Origin L3 reference profile is in
+[`docs/profiles/`](docs/profiles/).
+
+Track levels and verified properties do not certify that the data's content is correct. They
+bind downstream tests, review, calibration, or model evaluation to exact provenance so a bad
+answer can be traced and repaired.
+
 ## What verification means
 
 Makoto establishes that exact bytes match signed claims, that configured keys produced valid
