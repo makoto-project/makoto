@@ -48,8 +48,11 @@ From a clean checkout, install the locked dependencies and run one deterministic
 
 ```bash
 uv sync --locked --dev
-./scripts/demo-v0.2.sh --acceptance
+./scripts/demo.sh --acceptance
 ```
+
+The versioned `./scripts/demo-v0.2.sh --acceptance` entry point remains supported for
+commands copied from earlier documentation.
 
 The demo creates a synthetic source dataset, attests an origin, applies and attests two
 transformations, signs an exact handoff manifest, then verifies the bundle using a separate
@@ -71,7 +74,7 @@ Acceptance writes only to the ignored demo `.work/` directory and removes it on 
 To regenerate the checked display artifacts used by documentation and the website:
 
 ```bash
-./scripts/demo-v0.2.sh --acceptance --export demos/v0.2-end-to-end/generated
+./scripts/demo.sh --acceptance --export demos/v0.2-end-to-end/generated
 ```
 
 The checked-in keys are deterministic, insecure demo material. They are never production
