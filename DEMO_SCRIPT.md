@@ -22,7 +22,7 @@ release, and there is no published package. Everything below runs from this sour
 ## The whole thing, once (4 min)
 
 ```bash
-./scripts/demo-v0.2.sh --acceptance
+./scripts/demo.sh --acceptance
 ```
 
 **Stage directions:**

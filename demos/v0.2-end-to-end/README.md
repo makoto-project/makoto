@@ -8,8 +8,11 @@ receiver using receiver-owned trust policy and private JSON Schemas.
 Run from the repository root:
 
 ```console
-./scripts/demo-v0.2.sh --acceptance
+./scripts/demo.sh --acceptance
 ```
+
+The versioned `./scripts/demo-v0.2.sh --acceptance` entry point remains supported for
+commands copied from earlier documentation.
 
 The acceptance mode uses fixed, insecure demo-only Ed25519 seeds and timestamps
 to make every generated JSON byte reproducible. It writes only beneath the
@@ -20,7 +23,7 @@ To regenerate the reviewable documentation artifacts without retaining private
 demo keys:
 
 ```console
-./scripts/demo-v0.2.sh --acceptance --export demos/v0.2-end-to-end/generated
+./scripts/demo.sh --acceptance --export demos/v0.2-end-to-end/generated
 ```
 
 The export contains the source and transformed data, positive handoff bundle,
