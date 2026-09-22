@@ -23,3 +23,15 @@ jobs:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
       - run: ./scripts/check.sh
+        env:
+          MAKOTO_SKIP_GO_CHECK: '1'
+
+  go:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.26.x'
+          cache-dependency-path: go/go.sum
+      - run: ./scripts/check-go.sh

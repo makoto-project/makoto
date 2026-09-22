@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/schema/v0.2/dataset-manifest.schema.json",
+  "title": "Makoto v0.2 Dataset Manifest",
+  "type": "object",
+  "required": ["version", "entries"],
+  "properties": {
+    "version": { "const": "0.2" },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "required": ["sha256"],
+      "properties": { "sha256": { "type": "string", "minLength": 64, "maxLength": 64 } },
+      "additionalProperties": false
+    },
+    "logicalPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "entry": {
+      "type": "object",
+      "required": ["name", "digest"],
+      "properties": {
+        "name": { "$ref": "#/$defs/logicalPath" },
+        "digest": { "$ref": "#/$defs/digest" },
+        "size": { "type": "integer", "minimum": 0, "maximum": 9223372036854775807 },
+        "mediaType": {
+          "type": "string",
+          "maxLength": 255
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/schema/v0.2/origin.schema.json",
+  "title": "Makoto v0.2 Origin Predicate",
+  "type": "object",
+  "required": ["schemaVersion", "event", "source"],
+  "properties": {
+    "schemaVersion": { "const": "0.2" },
+    "event": { "$ref": "#/$defs/event" },
+    "source": { "$ref": "#/$defs/source" },
+    "profiles": {
+      "type": "array",
+      "items": { "$ref": "https://usemakoto.dev/schema/v0.2/profile-reference.schema.json" }
+    },
+    "extensions": { "$ref": "#/$defs/extensions" }
+  },
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 30
+    },
+    "event": {
+      "type": "object",
+      "required": ["id", "occurredAt"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "occurredAt": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "uri": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "name": { "type": "string", "maxLength": 4096 },
+        "mediaType": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "retrievedAt": { "$ref": "#/$defs/timestamp" },
+        "version": { "type": "string", "maxLength": 4096 }
+      },
+      "additionalProperties": false
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

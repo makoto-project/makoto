@@ -110,6 +110,13 @@ verified evidence, not part of that path preimage.
 schema bytes will become immutable when v0.2 is released. The historical v0.1 schema and
 demos remain available during migration but are not wire-compatible with v0.2.
 
+## SDKs
+
+The Python package in `src/makoto/` remains the reference CLI and complete receiver verifier.
+The native [Go module](go/README.md) reads, writes, schema-validates, canonicalizes, hashes,
+signs, and verifies Makoto v0.2 documents without shelling out to Python. Its documented support
+table explicitly excludes receiver graph, policy, private-profile, assurance, and VSA evaluation.
+
 ## Extensibility model
 
 Makoto core records only portable provenance and integrity facts. A team can keep its own
@@ -199,6 +206,7 @@ the reviewed Git tag and peeled commit before relying on the manifest.
 schemas/v0.2/   canonical v0.2 JSON Schemas and digest catalog
 spec/v0.2.md    complete v0.2 project and protocol specification
 src/makoto/     reference CLI, verifier, crypto, graph, policy, profiles, and reports
+go/             native Go document, schema, canonicalization, digest, and DSSE APIs
 testdata/v0.2/  pinned conformance inputs and expected negative outcomes
 tests/          schema, crypto, graph, policy, pattern, Unicode, and bundle tests
 demos/v0.2-end-to-end/ canonical September producer-to-consumer proof

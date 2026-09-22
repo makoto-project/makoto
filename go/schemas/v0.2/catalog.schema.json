@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/schema/v0.2/catalog.schema.json",
+  "title": "Makoto v0.2 Schema Catalog",
+  "type": "object",
+  "required": ["version", "resources"],
+  "properties": {
+    "version": { "const": "0.2" },
+    "resources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/resource" }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "required": ["sha256"],
+      "properties": { "sha256": { "type": "string", "minLength": 64, "maxLength": 64 } },
+      "additionalProperties": false
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "resource": {
+      "type": "object",
+      "required": ["id", "digest", "path"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "digest": { "$ref": "#/$defs/digest" },
+        "path": { "$ref": "#/$defs/path" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

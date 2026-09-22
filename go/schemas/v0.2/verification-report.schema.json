@@ -1,0 +1,3656 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json",
+  "title": "Makoto v0.2 Verification Report",
+  "type": "object",
+  "required": [
+    "reportVersion",
+    "decision",
+    "reportTruncated",
+    "primaryError",
+    "bundleId",
+    "evaluationTime",
+    "policyDigest",
+    "policyDigestEncoding",
+    "coreCatalogDigest",
+    "manifestDigest",
+    "expectedManifestDigest",
+    "handoff",
+    "expectedHeads",
+    "actualHeads",
+    "expectedArtifacts",
+    "expectedRecipient",
+    "actualRecipient",
+    "recipientStatus",
+    "expectedNonce",
+    "actualNonce",
+    "nonceStatus",
+    "roots",
+    "summary",
+    "statements",
+    "profiles",
+    "artifacts",
+    "unindexedEnvelopes",
+    "quarantinedStatements",
+    "datasetEntries",
+    "unreferencedFiles",
+    "checks",
+    "warnings",
+    "errors",
+    "tool"
+  ],
+  "properties": {
+    "reportVersion": {
+      "const": "0.2"
+    },
+    "decision": {
+      "enum": [
+        "allow",
+        "deny",
+        "indeterminate"
+      ]
+    },
+    "reportTruncated": {
+      "type": "boolean"
+    },
+    "primaryError": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/errorCode"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "bundleId": {
+      "$ref": "#/$defs/nullableString"
+    },
+    "evaluationTime": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "policyDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "policyDigestEncoding": {
+      "const": "exact-input-bytes"
+    },
+    "coreCatalogDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "manifestDigest": {
+      "$ref": "#/$defs/nullableDigest"
+    },
+    "expectedManifestDigest": {
+      "$ref": "#/$defs/nullableDigest"
+    },
+    "handoff": {
+      "$ref": "#/$defs/handoff"
+    },
+    "expectedHeads": {
+      "$ref": "#/$defs/digestArray"
+    },
+    "actualHeads": {
+      "$ref": "#/$defs/digestArray"
+    },
+    "expectedArtifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/expectedArtifact"
+      }
+    },
+    "expectedRecipient": {
+      "$ref": "#/$defs/nullableString"
+    },
+    "actualRecipient": {
+      "$ref": "#/$defs/nullableString"
+    },
+    "recipientStatus": {
+      "$ref": "#/$defs/status"
+    },
+    "expectedNonce": {
+      "$ref": "#/$defs/nullableString"
+    },
+    "actualNonce": {
+      "$ref": "#/$defs/nullableString"
+    },
+    "nonceStatus": {
+      "$ref": "#/$defs/status"
+    },
+    "roots": {
+      "$ref": "#/$defs/digestArray"
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    },
+    "statements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/statement"
+      }
+    },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/profile"
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "unindexedEnvelopes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unindexedEnvelope"
+      }
+    },
+    "quarantinedStatements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/quarantinedStatement"
+      }
+    },
+    "datasetEntries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/datasetEntry"
+      }
+    },
+    "unreferencedFiles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unreferencedFile"
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/checkLoadSafely"
+        },
+        {
+          "$ref": "#/$defs/checkParseStrictly"
+        },
+        {
+          "$ref": "#/$defs/checkIndexPayloads"
+        },
+        {
+          "$ref": "#/$defs/checkCoreSchemas"
+        },
+        {
+          "$ref": "#/$defs/checkSignatures"
+        },
+        {
+          "$ref": "#/$defs/checkAuthorizationThresholds"
+        },
+        {
+          "$ref": "#/$defs/checkMetadataProfiles"
+        },
+        {
+          "$ref": "#/$defs/checkAuthorization"
+        },
+        {
+          "$ref": "#/$defs/checkGraphDependencyArtifacts"
+        },
+        {
+          "$ref": "#/$defs/checkGraph"
+        },
+        {
+          "$ref": "#/$defs/checkRootsAndHeads"
+        },
+        {
+          "$ref": "#/$defs/checkCompletenessAnchor"
+        },
+        {
+          "$ref": "#/$defs/checkFreshnessAnchors"
+        },
+        {
+          "$ref": "#/$defs/checkArtifactBytes"
+        },
+        {
+          "$ref": "#/$defs/checkArtifactProfiles"
+        },
+        {
+          "$ref": "#/$defs/checkDecision"
+        }
+      ]
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/warning"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/error"
+      }
+    },
+    "tool": {
+      "$ref": "#/$defs/tool"
+    }
+  },
+  "$defs": {
+    "integer": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "nullableInteger": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/integer"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decimalString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "digest": {
+      "type": "object",
+      "required": [
+        "sha256"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64
+        }
+      },
+      "additionalProperties": false
+    },
+    "nullableDigest": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/digest"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "digestArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/digest"
+      }
+    },
+    "nullableString": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 30
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "fail",
+        "indeterminate",
+        "not_checked",
+        "skipped"
+      ]
+    },
+    "errorCode": {
+      "enum": [
+        "E_BUNDLE_UNSAFE_PATH",
+        "E_JSON_INVALID",
+        "E_JSON_DUPLICATE_KEY",
+        "E_ENVELOPE_MALFORMED",
+        "E_PAYLOAD_TYPE",
+        "E_STATEMENT_DIGEST",
+        "E_CORE_SCHEMA",
+        "E_CATALOG_INVALID",
+        "E_PROFILE_UNRESOLVED",
+        "E_PROFILE_INVALID",
+        "E_PROFILE_TARGET_MISSING",
+        "E_REQUIRED_PROFILE_MISSING",
+        "E_SIGNATURE_INVALID",
+        "E_SIGNER_UNAUTHORIZED",
+        "E_PREDICATE_SEMANTICS_UNSUPPORTED",
+        "E_EVENT_ID_DUPLICATE",
+        "E_PREDECESSOR_MISSING",
+        "E_PREDECESSOR_SUBJECT",
+        "E_INPUT_DIGEST",
+        "E_DATASET_MANIFEST_INVALID",
+        "E_DATASET_MANIFEST_REQUIRED",
+        "E_GRAPH_CYCLE",
+        "E_ROOT_INVALID",
+        "E_HANDOFF_REQUIRED",
+        "E_MANIFEST_SET",
+        "E_FRESHNESS_REQUIRED",
+        "E_EXPECTED_MANIFEST",
+        "E_EXPECTED_HEAD",
+        "E_EXPECTED_ARTIFACT",
+        "E_HANDOFF_RECIPIENT",
+        "E_HANDOFF_NONCE",
+        "E_HANDOFF_STALE",
+        "E_ARTIFACT_MISSING",
+        "E_ARTIFACT_DIGEST",
+        "E_ARTIFACT_SIZE",
+        "E_ARTIFACT_FORMAT",
+        "E_RESOURCE_LIMIT"
+      ]
+    },
+    "warningCode": {
+      "enum": [
+        "W_PROFILE_INDETERMINATE",
+        "W_PROFILE_RESOURCE_LIMIT",
+        "W_ARTIFACT_VALIDATION_LIMIT",
+        "W_HISTORICAL_ARTIFACT_NOT_CHECKED",
+        "W_SIGNATURE_UNKNOWN",
+        "W_FRESHNESS_NOT_CHECKED",
+        "W_ARTIFACT_UNPROFILED",
+        "W_POLICY_RULE_OVERLAP"
+      ]
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "keyid",
+        "keyKnown",
+        "cryptographic"
+      ],
+      "properties": {
+        "keyid": {
+          "type": "string",
+          "minLength": 71,
+          "maxLength": 71
+        },
+        "keyKnown": {
+          "type": "boolean"
+        },
+        "cryptographic": {
+          "$ref": "#/$defs/status"
+        }
+      },
+      "additionalProperties": false
+    },
+    "handoff": {
+      "type": "object",
+      "required": [
+        "signatures",
+        "authorization",
+        "completeness",
+        "freshnessMethod",
+        "freshnessChecks",
+        "freshnessStatus"
+      ],
+      "properties": {
+        "signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signature"
+          }
+        },
+        "authorization": {
+          "$ref": "#/$defs/status"
+        },
+        "completeness": {
+          "$ref": "#/$defs/status"
+        },
+        "freshnessMethod": {
+          "enum": [
+            "expected-manifest",
+            "expected-heads",
+            "expected-artifacts",
+            "nonce",
+            "max-age",
+            "multiple",
+            "none"
+          ]
+        },
+        "freshnessChecks": {
+          "type": "object",
+          "required": [
+            "expected-manifest",
+            "expected-heads",
+            "expected-artifacts",
+            "nonce",
+            "max-age"
+          ],
+          "properties": {
+            "expected-manifest": {
+              "$ref": "#/$defs/status"
+            },
+            "expected-heads": {
+              "$ref": "#/$defs/status"
+            },
+            "expected-artifacts": {
+              "$ref": "#/$defs/status"
+            },
+            "nonce": {
+              "$ref": "#/$defs/status"
+            },
+            "max-age": {
+              "$ref": "#/$defs/status"
+            }
+          },
+          "additionalProperties": false
+        },
+        "freshnessStatus": {
+          "$ref": "#/$defs/status"
+        }
+      },
+      "additionalProperties": false
+    },
+    "expectedArtifact": {
+      "type": "object",
+      "required": [
+        "head",
+        "subjectName",
+        "digest"
+      ],
+      "properties": {
+        "head": {
+          "$ref": "#/$defs/digest"
+        },
+        "subjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "statementsTotal",
+        "quarantinedStatementsTotal",
+        "statementsReachable",
+        "statementsValid",
+        "statementsAuthorized",
+        "signaturesTotal",
+        "signaturesChecked",
+        "signaturesValid",
+        "manifestSignaturesRequired",
+        "manifestSignaturesValid",
+        "manifestSignaturesAuthorized",
+        "roots",
+        "heads",
+        "artifactsDeclared",
+        "artifactsChecked",
+        "historicalMaterialsDeclared",
+        "historicalMaterialsChecked",
+        "profilesDeclared",
+        "profilesValidated"
+      ],
+      "properties": {
+        "statementsTotal": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "quarantinedStatementsTotal": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "statementsReachable": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "statementsValid": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "statementsAuthorized": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "signaturesTotal": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "signaturesChecked": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "signaturesValid": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "manifestSignaturesRequired": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "manifestSignaturesValid": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "manifestSignaturesAuthorized": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "roots": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "heads": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "artifactsDeclared": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "artifactsChecked": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "historicalMaterialsDeclared": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "historicalMaterialsChecked": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "profilesDeclared": {
+          "$ref": "#/$defs/nullableInteger"
+        },
+        "profilesValidated": {
+          "$ref": "#/$defs/nullableInteger"
+        }
+      },
+      "additionalProperties": false
+    },
+    "statement": {
+      "type": "object",
+      "required": [
+        "digest",
+        "predicateType",
+        "eventId",
+        "coreSchema",
+        "coreSchemaPrerequisiteChecks",
+        "signatures",
+        "candidateRuleIds",
+        "authorizingRuleIds",
+        "authorization",
+        "authorizationPrerequisiteChecks",
+        "graph",
+        "graphPrerequisiteChecks"
+      ],
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "predicateType": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "eventId": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "coreSchema": {
+          "$ref": "#/$defs/status"
+        },
+        "coreSchemaPrerequisiteChecks": {
+          "$ref": "#/$defs/recordPrerequisites"
+        },
+        "signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signature"
+          }
+        },
+        "candidateRuleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "authorizingRuleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "authorization": {
+          "$ref": "#/$defs/status"
+        },
+        "authorizationPrerequisiteChecks": {
+          "$ref": "#/$defs/recordPrerequisites"
+        },
+        "graph": {
+          "$ref": "#/$defs/status"
+        },
+        "graphPrerequisiteChecks": {
+          "$ref": "#/$defs/recordPrerequisites"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coreSchema": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "coreSchema"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coreSchemaPrerequisiteChecks": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "coreSchemaPrerequisiteChecks": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "authorization": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "authorization"
+            ]
+          },
+          "then": {
+            "properties": {
+              "authorizationPrerequisiteChecks": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "authorizationPrerequisiteChecks": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "graph": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "graph"
+            ]
+          },
+          "then": {
+            "properties": {
+              "graphPrerequisiteChecks": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "graphPrerequisiteChecks": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "profile": {
+      "type": "object",
+      "required": [
+        "statementDigest",
+        "id",
+        "digest",
+        "closureDigest",
+        "target",
+        "subjectName",
+        "mediaType",
+        "critical",
+        "requiredByManifest",
+        "requiredByPolicy",
+        "requiredByAuthorizationRuleIds",
+        "resolution",
+        "validation",
+        "prerequisiteChecks"
+      ],
+      "properties": {
+        "statementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "closureDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "target": {
+          "enum": [
+            "statement",
+            "predicate",
+            "artifact"
+          ]
+        },
+        "subjectName": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "mediaType": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "critical": {
+          "type": "boolean"
+        },
+        "requiredByManifest": {
+          "type": "boolean"
+        },
+        "requiredByPolicy": {
+          "type": "boolean"
+        },
+        "requiredByAuthorizationRuleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "resolution": {
+          "$ref": "#/$defs/status"
+        },
+        "validation": {
+          "$ref": "#/$defs/status"
+        },
+        "prerequisiteChecks": {
+          "$ref": "#/$defs/profilePrerequisites"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "validation": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "validation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "prerequisiteChecks": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "prerequisiteChecks": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "artifact": {
+      "type": "object",
+      "required": [
+        "lifecycleRole",
+        "artifactKind",
+        "statementDigest",
+        "head",
+        "subjectName",
+        "digest",
+        "digestStatus",
+        "digestPrerequisiteChecks",
+        "profileStatus",
+        "profilePrerequisiteChecks",
+        "applicableProfileCount"
+      ],
+      "properties": {
+        "lifecycleRole": {
+          "enum": [
+            "final",
+            "historical"
+          ]
+        },
+        "artifactKind": {
+          "enum": [
+            "ordinary",
+            "dataset-manifest"
+          ]
+        },
+        "statementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "head": {
+          "$ref": "#/$defs/nullableDigest"
+        },
+        "subjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "digestStatus": {
+          "$ref": "#/$defs/status"
+        },
+        "digestPrerequisiteChecks": {
+          "$ref": "#/$defs/recordPrerequisites"
+        },
+        "profileStatus": {
+          "$ref": "#/$defs/status"
+        },
+        "profilePrerequisiteChecks": {
+          "$ref": "#/$defs/recordPrerequisites"
+        },
+        "applicableProfileCount": {
+          "$ref": "#/$defs/integer"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "digestStatus": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "digestStatus"
+            ]
+          },
+          "then": {
+            "properties": {
+              "digestPrerequisiteChecks": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "digestPrerequisiteChecks": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "profileStatus": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "profileStatus"
+            ]
+          },
+          "then": {
+            "properties": {
+              "profilePrerequisiteChecks": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "profilePrerequisiteChecks": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "datasetEntry": {
+      "type": "object",
+      "required": [
+        "manifestStatementDigest",
+        "manifestSubjectName",
+        "entryName",
+        "digest",
+        "declaredSize",
+        "digestStatus",
+        "digestPrerequisiteChecks",
+        "sizeStatus",
+        "sizePrerequisiteChecks"
+      ],
+      "properties": {
+        "manifestStatementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "manifestSubjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "entryName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "declaredSize": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/decimalString"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "digestStatus": {
+          "$ref": "#/$defs/status"
+        },
+        "digestPrerequisiteChecks": {
+          "$ref": "#/$defs/recordPrerequisites"
+        },
+        "sizeStatus": {
+          "$ref": "#/$defs/status"
+        },
+        "sizePrerequisiteChecks": {
+          "$ref": "#/$defs/recordPrerequisites"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "digestStatus": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "digestStatus"
+            ]
+          },
+          "then": {
+            "properties": {
+              "digestPrerequisiteChecks": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "digestPrerequisiteChecks": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sizeStatus": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "sizeStatus"
+            ]
+          },
+          "then": {
+            "properties": {
+              "sizePrerequisiteChecks": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "sizePrerequisiteChecks": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "unindexedEnvelope": {
+      "type": "object",
+      "required": [
+        "path",
+        "payloadTypeStatus",
+        "diagnosticCode"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "payloadTypeStatus": {
+          "enum": [
+            "pass",
+            "fail",
+            "not_checked"
+          ]
+        },
+        "diagnosticCode": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/errorCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "quarantinedStatement": {
+      "type": "object",
+      "required": [
+        "path",
+        "digest"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "unreferencedFile": {
+      "type": "object",
+      "required": [
+        "path",
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "status": {
+          "const": "not_checked"
+        },
+        "reason": {
+          "const": "unreferenced"
+        }
+      },
+      "additionalProperties": false
+    },
+    "check": {
+      "type": "object",
+      "required": [
+        "id",
+        "status",
+        "prerequisiteChecks"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "prerequisiteChecks": {
+          "$ref": "#/$defs/topLevelPrerequisites"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "skipped"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "prerequisiteChecks": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "prerequisiteChecks": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "checkLoadSafely": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "load-safely"
+        }
+      }
+    },
+    "checkParseStrictly": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "parse-strictly"
+        }
+      }
+    },
+    "checkIndexPayloads": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "index-payloads"
+        }
+      }
+    },
+    "checkCoreSchemas": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "core-schemas"
+        }
+      }
+    },
+    "checkSignatures": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "signatures"
+        }
+      }
+    },
+    "checkAuthorizationThresholds": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "authorization-thresholds"
+        }
+      }
+    },
+    "checkMetadataProfiles": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "metadata-profiles"
+        }
+      }
+    },
+    "checkAuthorization": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "authorization"
+        }
+      }
+    },
+    "checkGraphDependencyArtifacts": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "graph-dependency-artifacts"
+        }
+      }
+    },
+    "checkGraph": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "graph"
+        }
+      }
+    },
+    "checkRootsAndHeads": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "roots-and-heads"
+        }
+      }
+    },
+    "checkCompletenessAnchor": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "completeness-anchor"
+        }
+      }
+    },
+    "checkFreshnessAnchors": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "freshness-anchors"
+        }
+      }
+    },
+    "checkArtifactBytes": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "artifact-bytes"
+        }
+      }
+    },
+    "checkArtifactProfiles": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "artifact-profiles"
+        }
+      }
+    },
+    "checkDecision": {
+      "$ref": "#/$defs/check",
+      "properties": {
+        "id": {
+          "const": "decision"
+        }
+      }
+    },
+    "diagnosticContext": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string",
+            "maxLength": 4096
+          },
+          {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/$defs/digest"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 4096
+            }
+          }
+        ]
+      }
+    },
+    "diagnosticBase": {
+      "type": "object",
+      "required": [
+        "code",
+        "step",
+        "message",
+        "context",
+        "causedByCheck"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "step": {
+          "type": "integer"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "context": {
+          "$ref": "#/$defs/diagnosticContext"
+        },
+        "causedByCheck": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "error": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_BUNDLE_UNSAFE_PATH"
+            },
+            "step": {
+              "const": 1
+            },
+            "causedByCheck": {
+              "const": "load-safely"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_BUNDLE_UNSAFE_PATH"
+            },
+            "step": {
+              "const": 2
+            },
+            "causedByCheck": {
+              "const": "parse-strictly"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_BUNDLE_UNSAFE_PATH"
+            },
+            "step": {
+              "const": 4
+            },
+            "causedByCheck": {
+              "const": "core-schemas"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_BUNDLE_UNSAFE_PATH"
+            },
+            "step": {
+              "const": 8
+            },
+            "causedByCheck": {
+              "const": "graph-dependency-artifacts"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_BUNDLE_UNSAFE_PATH"
+            },
+            "step": {
+              "const": 12
+            },
+            "causedByCheck": {
+              "const": "artifact-bytes"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 1
+            },
+            "causedByCheck": {
+              "const": "load-safely"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 2
+            },
+            "causedByCheck": {
+              "const": "parse-strictly"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 3
+            },
+            "causedByCheck": {
+              "const": "index-payloads"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 4
+            },
+            "causedByCheck": {
+              "const": "core-schemas"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 5
+            },
+            "causedByCheck": {
+              "const": "signatures"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 6
+            },
+            "causedByCheck": {
+              "const": "authorization-thresholds"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 7
+            },
+            "causedByCheck": {
+              "const": "metadata-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 7
+            },
+            "causedByCheck": {
+              "const": "authorization"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 8
+            },
+            "causedByCheck": {
+              "const": "graph-dependency-artifacts"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 9
+            },
+            "causedByCheck": {
+              "const": "graph"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 10
+            },
+            "causedByCheck": {
+              "const": "roots-and-heads"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "completeness-anchor"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "freshness-anchors"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 12
+            },
+            "causedByCheck": {
+              "const": "artifact-bytes"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 13
+            },
+            "causedByCheck": {
+              "const": "artifact-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 14
+            },
+            "causedByCheck": {
+              "const": "decision"
+            },
+            "context": {
+              "$ref": "#/$defs/contextLimit"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_HANDOFF_REQUIRED"
+            },
+            "step": {
+              "const": 1
+            },
+            "causedByCheck": {
+              "const": "load-safely"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_HANDOFF_REQUIRED"
+            },
+            "step": {
+              "const": 2
+            },
+            "causedByCheck": {
+              "const": "parse-strictly"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_JSON_INVALID"
+            },
+            "step": {
+              "const": 2
+            },
+            "causedByCheck": {
+              "const": "parse-strictly"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_JSON_INVALID"
+            },
+            "step": {
+              "const": 3
+            },
+            "causedByCheck": {
+              "const": "index-payloads"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_JSON_INVALID"
+            },
+            "step": {
+              "const": 4
+            },
+            "causedByCheck": {
+              "const": "core-schemas"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_JSON_DUPLICATE_KEY"
+            },
+            "step": {
+              "const": 2
+            },
+            "causedByCheck": {
+              "const": "parse-strictly"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_JSON_DUPLICATE_KEY"
+            },
+            "step": {
+              "const": 3
+            },
+            "causedByCheck": {
+              "const": "index-payloads"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_JSON_DUPLICATE_KEY"
+            },
+            "step": {
+              "const": 4
+            },
+            "causedByCheck": {
+              "const": "core-schemas"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_ENVELOPE_MALFORMED"
+            },
+            "step": {
+              "const": 2
+            },
+            "causedByCheck": {
+              "const": "parse-strictly"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PAYLOAD_TYPE"
+            },
+            "step": {
+              "const": 2
+            },
+            "causedByCheck": {
+              "const": "parse-strictly"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_STATEMENT_DIGEST"
+            },
+            "step": {
+              "const": 3
+            },
+            "causedByCheck": {
+              "const": "index-payloads"
+            },
+            "context": {
+              "$ref": "#/$defs/contextStatementDigestMismatch"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_CORE_SCHEMA"
+            },
+            "step": {
+              "const": 2
+            },
+            "causedByCheck": {
+              "const": "core-schemas"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPathOrEvidence"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_CORE_SCHEMA"
+            },
+            "step": {
+              "const": 4
+            },
+            "causedByCheck": {
+              "const": "core-schemas"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPathOrEvidence"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_CATALOG_INVALID"
+            },
+            "step": {
+              "const": 4
+            },
+            "causedByCheck": {
+              "const": "core-schemas"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PREDICATE_SEMANTICS_UNSUPPORTED"
+            },
+            "step": {
+              "const": 4
+            },
+            "causedByCheck": {
+              "const": "core-schemas"
+            },
+            "context": {
+              "$ref": "#/$defs/contextGraphStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PROFILE_TARGET_MISSING"
+            },
+            "step": {
+              "const": 4
+            },
+            "causedByCheck": {
+              "const": "core-schemas"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfile"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_SIGNATURE_INVALID"
+            },
+            "step": {
+              "const": 5
+            },
+            "causedByCheck": {
+              "const": "signatures"
+            },
+            "context": {
+              "$ref": "#/$defs/contextSignature"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_SIGNER_UNAUTHORIZED"
+            },
+            "step": {
+              "const": 6
+            },
+            "causedByCheck": {
+              "const": "authorization-thresholds"
+            },
+            "context": {
+              "$ref": "#/$defs/contextEvidenceIdentity"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PROFILE_UNRESOLVED"
+            },
+            "step": {
+              "const": 7
+            },
+            "causedByCheck": {
+              "const": "metadata-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PROFILE_UNRESOLVED"
+            },
+            "step": {
+              "const": 7
+            },
+            "causedByCheck": {
+              "const": "authorization"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PROFILE_UNRESOLVED"
+            },
+            "step": {
+              "const": 8
+            },
+            "causedByCheck": {
+              "const": "graph-dependency-artifacts"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PROFILE_UNRESOLVED"
+            },
+            "step": {
+              "const": 13
+            },
+            "causedByCheck": {
+              "const": "artifact-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PROFILE_INVALID"
+            },
+            "step": {
+              "const": 7
+            },
+            "causedByCheck": {
+              "const": "metadata-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PROFILE_INVALID"
+            },
+            "step": {
+              "const": 8
+            },
+            "causedByCheck": {
+              "const": "graph-dependency-artifacts"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PROFILE_INVALID"
+            },
+            "step": {
+              "const": 13
+            },
+            "causedByCheck": {
+              "const": "artifact-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_REQUIRED_PROFILE_MISSING"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "completeness-anchor"
+            },
+            "context": {
+              "$ref": "#/$defs/contextRequiredProfile"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_REQUIRED_PROFILE_MISSING"
+            },
+            "step": {
+              "const": 13
+            },
+            "causedByCheck": {
+              "const": "artifact-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextRequiredProfile"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_DATASET_MANIFEST_INVALID"
+            },
+            "step": {
+              "const": 8
+            },
+            "causedByCheck": {
+              "const": "graph-dependency-artifacts"
+            },
+            "context": {
+              "$ref": "#/$defs/contextDataset"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_DATASET_MANIFEST_INVALID"
+            },
+            "step": {
+              "const": 12
+            },
+            "causedByCheck": {
+              "const": "artifact-bytes"
+            },
+            "context": {
+              "$ref": "#/$defs/contextDataset"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_DATASET_MANIFEST_REQUIRED"
+            },
+            "step": {
+              "const": 8
+            },
+            "causedByCheck": {
+              "const": "graph-dependency-artifacts"
+            },
+            "context": {
+              "$ref": "#/$defs/contextDataset"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_EVENT_ID_DUPLICATE"
+            },
+            "step": {
+              "const": 9
+            },
+            "causedByCheck": {
+              "const": "graph"
+            },
+            "context": {
+              "$ref": "#/$defs/contextGraphStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PREDECESSOR_MISSING"
+            },
+            "step": {
+              "const": 9
+            },
+            "causedByCheck": {
+              "const": "graph"
+            },
+            "context": {
+              "$ref": "#/$defs/contextGraphStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_PREDECESSOR_SUBJECT"
+            },
+            "step": {
+              "const": 9
+            },
+            "causedByCheck": {
+              "const": "graph"
+            },
+            "context": {
+              "$ref": "#/$defs/contextGraphStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_INPUT_DIGEST"
+            },
+            "step": {
+              "const": 9
+            },
+            "causedByCheck": {
+              "const": "graph"
+            },
+            "context": {
+              "$ref": "#/$defs/contextGraphStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_GRAPH_CYCLE"
+            },
+            "step": {
+              "const": 9
+            },
+            "causedByCheck": {
+              "const": "graph"
+            },
+            "context": {
+              "$ref": "#/$defs/contextGraphStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_ROOT_INVALID"
+            },
+            "step": {
+              "const": 10
+            },
+            "causedByCheck": {
+              "const": "roots-and-heads"
+            },
+            "context": {
+              "$ref": "#/$defs/contextGraphStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_MANIFEST_SET"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "completeness-anchor"
+            },
+            "context": {
+              "$ref": "#/$defs/contextManifestSet"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_FRESHNESS_REQUIRED"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "freshness-anchors"
+            },
+            "context": {
+              "$ref": "#/$defs/contextBundle"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_EXPECTED_MANIFEST"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "freshness-anchors"
+            },
+            "context": {
+              "$ref": "#/$defs/contextExpectedActual"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_EXPECTED_HEAD"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "freshness-anchors"
+            },
+            "context": {
+              "$ref": "#/$defs/contextBundle"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_EXPECTED_ARTIFACT"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "freshness-anchors"
+            },
+            "context": {
+              "$ref": "#/$defs/contextBundle"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_HANDOFF_RECIPIENT"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "freshness-anchors"
+            },
+            "context": {
+              "$ref": "#/$defs/contextExpectedActual"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_HANDOFF_NONCE"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "freshness-anchors"
+            },
+            "context": {
+              "$ref": "#/$defs/contextExpectedActual"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_HANDOFF_STALE"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "freshness-anchors"
+            },
+            "context": {
+              "$ref": "#/$defs/contextBundle"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_ARTIFACT_MISSING"
+            },
+            "step": {
+              "const": 12
+            },
+            "causedByCheck": {
+              "const": "artifact-bytes"
+            },
+            "context": {
+              "$ref": "#/$defs/contextArtifactOrPath"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_ARTIFACT_DIGEST"
+            },
+            "step": {
+              "const": 8
+            },
+            "causedByCheck": {
+              "const": "graph-dependency-artifacts"
+            },
+            "context": {
+              "$ref": "#/$defs/contextArtifact"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_ARTIFACT_DIGEST"
+            },
+            "step": {
+              "const": 12
+            },
+            "causedByCheck": {
+              "const": "artifact-bytes"
+            },
+            "context": {
+              "$ref": "#/$defs/contextArtifact"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_ARTIFACT_SIZE"
+            },
+            "step": {
+              "const": 12
+            },
+            "causedByCheck": {
+              "const": "artifact-bytes"
+            },
+            "context": {
+              "$ref": "#/$defs/contextDatasetSize"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "E_ARTIFACT_FORMAT"
+            },
+            "step": {
+              "const": 13
+            },
+            "causedByCheck": {
+              "const": "artifact-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileArtifact"
+            }
+          }
+        }
+      ]
+    },
+    "warning": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_POLICY_RULE_OVERLAP"
+            },
+            "step": {
+              "const": 0
+            },
+            "causedByCheck": {
+              "const": "authorization-thresholds"
+            },
+            "context": {
+              "$ref": "#/$defs/contextPolicyOverlap"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_SIGNATURE_UNKNOWN"
+            },
+            "step": {
+              "const": 5
+            },
+            "causedByCheck": {
+              "const": "signatures"
+            },
+            "context": {
+              "$ref": "#/$defs/contextSignature"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_PROFILE_INDETERMINATE"
+            },
+            "step": {
+              "const": 7
+            },
+            "causedByCheck": {
+              "const": "metadata-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_PROFILE_INDETERMINATE"
+            },
+            "step": {
+              "const": 8
+            },
+            "causedByCheck": {
+              "const": "graph-dependency-artifacts"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_PROFILE_INDETERMINATE"
+            },
+            "step": {
+              "const": 13
+            },
+            "causedByCheck": {
+              "const": "artifact-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_PROFILE_RESOURCE_LIMIT"
+            },
+            "step": {
+              "const": 7
+            },
+            "causedByCheck": {
+              "const": "metadata-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_ARTIFACT_VALIDATION_LIMIT"
+            },
+            "step": {
+              "const": 8
+            },
+            "causedByCheck": {
+              "const": "graph-dependency-artifacts"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_ARTIFACT_VALIDATION_LIMIT"
+            },
+            "step": {
+              "const": 13
+            },
+            "causedByCheck": {
+              "const": "artifact-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextProfileOrStatement"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_HISTORICAL_ARTIFACT_NOT_CHECKED"
+            },
+            "step": {
+              "const": 12
+            },
+            "causedByCheck": {
+              "const": "artifact-bytes"
+            },
+            "context": {
+              "$ref": "#/$defs/contextArtifact"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_FRESHNESS_NOT_CHECKED"
+            },
+            "step": {
+              "const": 11
+            },
+            "causedByCheck": {
+              "const": "freshness-anchors"
+            },
+            "context": {
+              "$ref": "#/$defs/contextBundle"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/diagnosticBase",
+          "properties": {
+            "code": {
+              "const": "W_ARTIFACT_UNPROFILED"
+            },
+            "step": {
+              "const": 13
+            },
+            "causedByCheck": {
+              "const": "artifact-profiles"
+            },
+            "context": {
+              "$ref": "#/$defs/contextArtifact"
+            }
+          }
+        }
+      ]
+    },
+    "tool": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "additionalProperties": false
+    },
+    "topLevelPrerequisites": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "load-safely",
+          "parse-strictly",
+          "index-payloads",
+          "core-schemas",
+          "signatures",
+          "authorization-thresholds",
+          "metadata-profiles",
+          "authorization",
+          "graph-dependency-artifacts",
+          "graph",
+          "roots-and-heads",
+          "completeness-anchor",
+          "freshness-anchors",
+          "artifact-bytes",
+          "artifact-profiles",
+          "decision"
+        ]
+      }
+    },
+    "profilePrerequisites": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "authorization-thresholds",
+          "metadata-profiles",
+          "authorization",
+          "graph-dependency-artifacts",
+          "graph",
+          "artifact-bytes",
+          "artifact-profiles",
+          "resolution"
+        ]
+      }
+    },
+    "recordPrerequisites": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "index-payloads",
+          "core-schemas",
+          "signatures",
+          "authorization-thresholds",
+          "metadata-profiles",
+          "authorization",
+          "graph-dependency-artifacts",
+          "graph",
+          "completeness-anchor",
+          "artifact-bytes"
+        ]
+      }
+    },
+    "contextPath": {
+      "type": "object",
+      "required": [
+        "path"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "contextLimit": {
+      "type": "object",
+      "required": [
+        "limit"
+      ],
+      "properties": {
+        "limit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "statementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "profileDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "subjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "entryName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "contextStatementDigestMismatch": {
+      "type": "object",
+      "required": [
+        "statementDigest",
+        "declared"
+      ],
+      "properties": {
+        "statementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "declared": {},
+        "actual": {},
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "contextPathOrEvidence": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "statementDigest"
+          ],
+          "properties": {
+            "statementDigest": {
+              "$ref": "#/$defs/digest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "manifestDigest"
+          ],
+          "properties": {
+            "manifestDigest": {
+              "$ref": "#/$defs/digest"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contextGraphStatement": {
+      "type": "object",
+      "required": [
+        "statementDigest"
+      ],
+      "properties": {
+        "statementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "predicateType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "eventId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "inputName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "predecessorStatementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "predecessorSubjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "entryName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "expected": {},
+        "actual": {}
+      },
+      "additionalProperties": false
+    },
+    "contextProfile": {
+      "type": "object",
+      "required": [
+        "statementDigest",
+        "profileId",
+        "profileDigest"
+      ],
+      "properties": {
+        "statementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "profileDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profileClosureDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profileTarget": {
+          "enum": [
+            "statement",
+            "predicate",
+            "artifact"
+          ]
+        },
+        "subjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "mediaType": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "contextSignature": {
+      "type": "object",
+      "required": [
+        "statementDigest",
+        "keyid"
+      ],
+      "properties": {
+        "statementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "keyid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "additionalProperties": false
+    },
+    "contextEvidenceIdentity": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "statementDigest"
+          ],
+          "properties": {
+            "statementDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "ruleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "manifestDigest"
+          ],
+          "properties": {
+            "manifestDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "ruleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contextProfileOrStatement": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "statementDigest"
+          ],
+          "properties": {
+            "statementDigest": {
+              "$ref": "#/$defs/digest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "statementDigest",
+            "profileId",
+            "profileDigest"
+          ],
+          "properties": {
+            "statementDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "profileId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "profileDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "profileClosureDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "profileTarget": {
+              "enum": [
+                "statement",
+                "predicate",
+                "artifact"
+              ]
+            },
+            "subjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "mediaType": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contextRequiredProfile": {
+      "type": "object",
+      "required": [
+        "profileId",
+        "profileDigest",
+        "subjectName"
+      ],
+      "properties": {
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "profileDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profileClosureDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profileTarget": {
+          "enum": [
+            "statement",
+            "predicate",
+            "artifact"
+          ]
+        },
+        "head": {
+          "$ref": "#/$defs/digest"
+        },
+        "subjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "mediaType": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "contextDataset": {
+      "type": "object",
+      "required": [
+        "manifestStatementDigest",
+        "manifestSubjectName"
+      ],
+      "properties": {
+        "manifestStatementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "manifestSubjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "entryName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "artifactDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "contextManifestSet": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "bundleId"
+          ],
+          "properties": {
+            "bundleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "expected": {},
+            "actual": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "bundleId",
+            "statementDigest",
+            "subjectName",
+            "artifactDigest"
+          ],
+          "properties": {
+            "bundleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "statementDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "subjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "artifactDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "bundleId",
+            "head",
+            "subjectName",
+            "artifactDigest"
+          ],
+          "properties": {
+            "bundleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "head": {
+              "$ref": "#/$defs/digest"
+            },
+            "subjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "artifactDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contextBundle": {
+      "type": "object",
+      "required": [
+        "bundleId"
+      ],
+      "properties": {
+        "bundleId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "expected": {},
+        "actual": {},
+        "issuedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "evaluationTime": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "contextExpectedActual": {
+      "type": "object",
+      "required": [
+        "expected",
+        "actual"
+      ],
+      "properties": {
+        "bundleId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "expected": {},
+        "actual": {}
+      },
+      "additionalProperties": false
+    },
+    "contextArtifactOrPath": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "statementDigest",
+            "subjectName",
+            "artifactDigest"
+          ],
+          "properties": {
+            "statementDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "subjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "artifactDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "head",
+            "subjectName",
+            "artifactDigest"
+          ],
+          "properties": {
+            "head": {
+              "$ref": "#/$defs/digest"
+            },
+            "subjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "artifactDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "manifestStatementDigest",
+            "manifestSubjectName",
+            "entryName",
+            "artifactDigest"
+          ],
+          "properties": {
+            "manifestStatementDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "manifestSubjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "entryName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "artifactDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contextArtifact": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "statementDigest",
+            "subjectName",
+            "artifactDigest"
+          ],
+          "properties": {
+            "statementDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "subjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "artifactDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "expected": {},
+            "actual": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "head",
+            "subjectName",
+            "artifactDigest"
+          ],
+          "properties": {
+            "head": {
+              "$ref": "#/$defs/digest"
+            },
+            "subjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "artifactDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "expected": {},
+            "actual": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "manifestStatementDigest",
+            "manifestSubjectName",
+            "artifactDigest"
+          ],
+          "properties": {
+            "manifestStatementDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "manifestSubjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "artifactDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "expected": {},
+            "actual": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "manifestStatementDigest",
+            "manifestSubjectName",
+            "entryName",
+            "artifactDigest"
+          ],
+          "properties": {
+            "manifestStatementDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "manifestSubjectName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "entryName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "artifactDigest": {
+              "$ref": "#/$defs/digest"
+            },
+            "expected": {},
+            "actual": {}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contextDatasetSize": {
+      "type": "object",
+      "required": [
+        "manifestStatementDigest",
+        "manifestSubjectName",
+        "entryName",
+        "declaredSize",
+        "actualSize"
+      ],
+      "properties": {
+        "manifestStatementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "manifestSubjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "entryName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "artifactDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "declaredSize": {
+          "$ref": "#/$defs/decimalString"
+        },
+        "actualSize": {
+          "$ref": "#/$defs/decimalString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "contextProfileArtifact": {
+      "type": "object",
+      "required": [
+        "statementDigest",
+        "subjectName",
+        "profileId",
+        "profileDigest"
+      ],
+      "properties": {
+        "statementDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "subjectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "artifactDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "profileDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profileClosureDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profileTarget": {
+          "enum": [
+            "statement",
+            "predicate",
+            "artifact"
+          ]
+        },
+        "mediaType": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "contextPolicyOverlap": {
+      "type": "object",
+      "required": [
+        "lessConstrainedRuleId",
+        "moreConstrainedRuleId"
+      ],
+      "properties": {
+        "lessConstrainedRuleId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "moreConstrainedRuleId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
