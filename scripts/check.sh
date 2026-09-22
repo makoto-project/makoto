@@ -14,3 +14,6 @@ uv run ruff check .
 uv run mypy src
 uv run pytest
 bash ./scripts/demo.sh --acceptance
+if [[ "${MAKOTO_SKIP_GO_CHECK:-0}" != "1" ]]; then
+  bash ./scripts/check-go.sh
+fi
