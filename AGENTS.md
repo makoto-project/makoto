@@ -6,8 +6,8 @@ This file is the project's committed home for project-intrinsic agent knowledge:
   verified properties, source inventory, and threat mapping are completed by
   `spec/failure-mode-coverage.md`.
 - Run the repository's complete local gate with `./scripts/check.sh`.
-- The native binding is a separate Go module in `go/`; its focused gate is
-  `./scripts/check-go.sh`, which also checks the embedded schema copy for drift.
+- The schema-first Go examples are a separate module in `examples/go/`; run
+  their focused formatting, vet, and test gate with `./scripts/check-go.sh`.
 
 ## Maintaining this file
 
