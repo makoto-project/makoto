@@ -153,3 +153,31 @@ func TestPublishedSchemaRejectsInvalidBundle(t *testing.T) {
 		t.Fatal("bundle without required version passed validation")
 	}
 }
+
+func TestV03SchemasValidateGenericJSON(t *testing.T) {
+	schemaDir := filepath.Join(repositoryRoot(), "schemas", "v0.3")
+	fixtures := map[string]string{
+		"statement": filepath.Join(
+			rootFixture("testdata", "v0.3", "license"),
+			"positive-statement.json",
+		),
+		"record-declaration": filepath.Join(
+			rootFixture("testdata", "v0.3", "records"),
+			"byte-ranges.json",
+		),
+	}
+	for kind, path := range fixtures {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := validate(schemaDir, kind, raw); err != nil {
+			t.Fatal(err)
+		}
+		assertGenericRoundTrip(t, raw)
+	}
+}
+
+func rootFixture(parts ...string) string {
+	return filepath.Join(append([]string{repositoryRoot()}, parts...)...)
+}

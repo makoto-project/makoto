@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://usemakoto.dev/schema/v0.3/record-declaration.schema.json",
+  "title": "Makoto v0.3 Record Declaration",
+  "type": "object",
+  "required": ["version", "kind"],
+  "properties": {
+    "version": { "const": "0.3" },
+    "kind": { "enum": ["byteRanges", "recordHashes"] },
+    "ranges": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/range" }
+    },
+    "hashes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/digest" }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": { "kind": { "const": "byteRanges" }, "hashes": false },
+      "required": ["ranges"]
+    },
+    {
+      "properties": { "kind": { "const": "recordHashes" }, "ranges": false },
+      "required": ["hashes"]
+    }
+  ],
+  "$defs": {
+    "integer": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9223372036854775807
+    },
+    "digest": {
+      "type": "object",
+      "required": ["sha256"],
+      "properties": {
+        "sha256": { "type": "string", "minLength": 64, "maxLength": 64 }
+      },
+      "additionalProperties": false
+    },
+    "range": {
+      "type": "object",
+      "required": ["offset", "length"],
+      "properties": {
+        "offset": { "$ref": "#/$defs/integer" },
+        "length": { "$ref": "#/$defs/integer" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

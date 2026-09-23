@@ -1,4 +1,4 @@
-"""Build the deterministic Makoto v0.2 core schema catalog."""
+"""Build deterministic Makoto core schema catalogs."""
 
 import argparse
 
@@ -14,12 +14,16 @@ def main() -> int:
     )
     arguments = parser.parse_args()
     if arguments.check:
-        expected = serialize(build_catalog())
-        actual = (schema_directory() / "catalog.json").read_bytes()
-        if actual != expected:
-            parser.error("schemas/v0.2/catalog.json is stale; run this script without --check")
+        for version in ("0.2", "0.3"):
+            expected = serialize(build_catalog(version=version))
+            actual = (schema_directory(version=version) / "catalog.json").read_bytes()
+            if actual != expected:
+                parser.error(
+                    f"schemas/v{version}/catalog.json is stale; run this script without --check"
+                )
         return 0
-    write_catalog()
+    for version in ("0.2", "0.3"):
+        write_catalog(version=version)
     return 0
 
 

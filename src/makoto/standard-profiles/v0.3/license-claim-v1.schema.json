@@ -1,0 +1,68 @@
+{
+  "$schema": "https://usemakoto.dev/schema/v0.3/profile-dialect.schema.json",
+  "$id": "https://usemakoto.dev/profile/v0.3/license-claim-v1.schema.json",
+  "title": "Makoto v0.3 Standard Licence Claim Profile",
+  "type": "object",
+  "required": ["_type", "subject", "predicateType", "predicate"],
+  "properties": {
+    "_type": { "const": "https://in-toto.io/Statement/v1" },
+    "subject": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 4096 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "predicateType": {
+      "enum": [
+        "https://usemakoto.dev/predicate/v0.3/origin",
+        "https://usemakoto.dev/predicate/v0.3/transform"
+      ]
+    },
+    "predicate": {
+      "type": "object",
+      "required": ["extensions"],
+      "properties": {
+        "extensions": {
+          "type": "object",
+          "required": ["https://usemakoto.dev/claim/v0.3/license"],
+          "properties": {
+            "https://usemakoto.dev/claim/v0.3/license": {
+              "type": "object",
+              "required": ["claims"],
+              "properties": {
+                "claims": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": { "$ref": "#/$defs/claim" }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "claim": {
+      "type": "object",
+      "required": ["subjectName", "spdxExpression", "evidenceUrl"],
+      "properties": {
+        "subjectName": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "spdxExpression": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "evidenceUrl": { "type": "string", "minLength": 1, "maxLength": 4096 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

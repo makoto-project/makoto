@@ -8,14 +8,12 @@ designed to let a recipient verify:
 3. which cryptographic identities made those claims; and
 4. whether the exact metadata and artifact bytes still match their signed digests.
 
-Makoto v0.2 replaces the v0.1 mutable lineage document with immutable in-toto Statement
-payloads, independently signed DSSE envelopes, a hash-linked provenance DAG, digest-pinned
-organizational JSON Schema profiles, and a separately signed handoff manifest.
+Makoto v0.3 retains the v0.2 signed-lineage model and adds a standard licence-claim profile plus optional record-level Merkle commitments for dataset entries. The reference verifier continues to support v0.2 as a separate immutable protocol.
 
 ## Status
 
-v0.2 is an unreleased release candidate under active implementation. The repository now
-contains the twelve core Draft 2020-12 schemas, digest catalogs, strict DSSE/Ed25519 signing,
+v0.3 is an unreleased draft under active implementation. The repository now
+contains fourteen v0.3 Draft 2020-12 schemas, digest catalogs, strict DSSE/Ed25519 signing,
 consumer-owned trust policy, hash-linked DAG verification, private organizational profiles,
 pinned Unicode 15.0 handling, the bounded `makotoPattern` vocabulary, and the complete
 September producer-to-consumer demo. It must not yet be described as a released or fully
@@ -27,7 +25,7 @@ contract now live in `testdata/v0.2/diagnostic-map.json` and
 row. Exact dataset-manifest membership, partition digest, and optional size verification are
 implemented, but do not yet cover every resource-limit stratum in the spec.
 
-The complete project and protocol-design specification is [spec/v0.2.md](spec/v0.2.md). The
+The v0.3 design and complete protocol specification is [spec/v0.3.md](spec/v0.3.md). The immutable prior contract remains [spec/v0.2.md](spec/v0.2.md). The
 [adversarial review record](docs/v0.2-adversarial-review.md) distinguishes completed reviews,
 excluded timeouts, accepted changes, and the still-open current-revision convergence gate.
 The specification explicitly distinguishes signature validity from signer authorization,
@@ -82,12 +80,13 @@ credentials.
 
 ## Core schema contract
 
-Canonical v0.2 resources live under [`schemas/v0.2/`](schemas/v0.2/):
+Canonical v0.3 resources live under [`schemas/v0.3/`](schemas/v0.3/). The unchanged v0.2 resources remain under [`schemas/v0.2/`](schemas/v0.2/).
 
 - DSSE envelope and in-toto statement shapes;
 - origin and transformation predicates;
 - extensible, digest-pinned profile references and the Makoto profile dialect;
 - offline schema catalogs and partitioned dataset manifests;
+- record declarations and record-inclusion proofs;
 - handoff manifests and transport bundle indexes;
 - consumer trust policies; and
 - stable verification reports.
@@ -106,9 +105,19 @@ signs the transformation. Dataset-entry bytes are stored at
 identity `{manifestStatementDigest, manifestSubjectName, entryName}`. The partition digest is
 verified evidence, not part of that path preimage.
 
-`schemas/v0.2/catalog.json` pins the exact bytes of all twelve schema resources. Versioned
-schema bytes will become immutable when v0.2 is released. The historical v0.1 schema and
-demos remain available during migration but are not wire-compatible with v0.2.
+`schemas/v0.3/catalog.json` pins the exact bytes of all fourteen v0.3 schema resources. A verifier dispatches one protocol family and rejects mixed v0.2/v0.3 identifiers. The existing demo remains a v0.2 compatibility proof.
+
+## Licence claims
+
+v0.3 includes a verifier-owned, digest-pinned standard profile for one SPDX expression and evidence URL per statement subject. Generate its exact profile reference with `makoto profile standard-license`. A receiver can require it through a rule's `profileConstraints`.
+
+The claim records what a signer vouched for. Makoto does not decide whether the licence is correct, whether the evidence is sufficient, or whether the data is legally usable.
+
+## Record inclusion proofs
+
+A v0.3 dataset entry may carry a record count and Merkle root. Producers declare record boundaries as byte ranges or supply an ordered record-hash list. Makoto does not parse the entry's file format.
+
+`makoto record root` computes the manifest commitment. `makoto record prove` and `makoto record verify` require a bundle that the v0.3 verifier allows under the supplied consumer policy. Proof verification checks one record digest against the signed dataset entry. Supplying the record or entry bytes also checks the corresponding byte digest. See [the migration guide](docs/v0.3-migration.md) for command examples.
 
 ## Language examples
 
@@ -199,17 +208,20 @@ uv run scripts/release_checksums.py --write
 ./scripts/release-check.sh
 ```
 
-`release/v0.2/checksums.json` is not self-authenticating. A distributor must independently pin
+`release/v0.3/checksums.json` is not self-authenticating. A distributor must independently pin
 the reviewed Git tag and peeled commit before relying on the manifest.
 
 ## Repository layout
 
 ```text
 schemas/v0.2/   canonical v0.2 JSON Schemas and digest catalog
+schemas/v0.3/   canonical v0.3 JSON Schemas and digest catalog
 spec/v0.2.md    complete v0.2 project and protocol specification
+spec/v0.3.md    v0.3 design and complete protocol specification
 src/makoto/     reference CLI, verifier, crypto, graph, policy, profiles, and reports
 examples/go/    schema-first Go integration examples and fixture-backed tests
 testdata/v0.2/  pinned conformance inputs and expected negative outcomes
+testdata/v0.3/  v0.3 licence, record, and diagnostic fixtures
 tests/          schema, crypto, graph, policy, pattern, Unicode, and bundle tests
 demos/v0.2-end-to-end/ canonical September producer-to-consumer proof
 docs/           v0.2 architecture, integration boundary, and migration guidance

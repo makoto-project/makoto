@@ -1,4 +1,4 @@
-"""Typed, deterministic parsing for Makoto v0.2 dataset-manifest artifacts."""
+"""Typed, deterministic parsing for versioned dataset-manifest artifacts."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from typing import Any, cast
 
 from jsonschema import Draft202012Validator
 
+from makoto.protocol import infer_protocol_version
 from makoto.schema import (
     CoreValidationError,
     StrictJsonError,
@@ -34,10 +35,13 @@ class DatasetEntry:
     digest: str
     size: int | None
     media_type: str | None
+    record_count: int | None
+    record_root: str | None
 
 
 @dataclass(frozen=True)
 class DatasetManifestIndex:
+    protocol_version: str
     entries: tuple[DatasetEntry, ...]
     members: Mapping[str, DatasetEntry]
 
@@ -58,7 +62,8 @@ def parse_dataset_manifest(
         raise DatasetManifestError("parse", str(error)) from error
     if not isinstance(parsed, dict):
         raise DatasetManifestError("schema", "dataset manifest root must be an object")
-    schemas = load_core_schemas(repository_root)
+    protocol_version = infer_protocol_version("dataset-manifest", parsed)
+    schemas = load_core_schemas(repository_root, protocol_version=protocol_version)
     validator = Draft202012Validator(schemas["dataset-manifest"], registry=build_registry(schemas))
     schema_errors = sorted(
         validator.iter_errors(parsed), key=lambda error: list(error.absolute_path)
@@ -66,7 +71,9 @@ def parse_dataset_manifest(
     if schema_errors:
         message = "; ".join(error.message for error in schema_errors)
         raise DatasetManifestError("schema", message)
-    semantic_errors = semantic_violations("dataset-manifest", parsed)
+    semantic_errors = semantic_violations(
+        "dataset-manifest", parsed, protocol_version=protocol_version
+    )
     if semantic_errors:
         semantic_error = CoreValidationError(semantic_errors)
         raise DatasetManifestError("semantic", str(semantic_error)) from semantic_error
@@ -77,10 +84,17 @@ def parse_dataset_manifest(
             digest=entry["digest"]["sha256"],
             size=entry.get("size"),
             media_type=entry.get("mediaType"),
+            record_count=(
+                entry["recordMerkle"]["recordCount"] if "recordMerkle" in entry else None
+            ),
+            record_root=(
+                entry["recordMerkle"]["root"]["sha256"] if "recordMerkle" in entry else None
+            ),
         )
         for entry in value["entries"]
     )
     return DatasetManifestIndex(
+        protocol_version=protocol_version,
         entries=entries,
         members=MappingProxyType({entry.name: entry for entry in entries}),
     )

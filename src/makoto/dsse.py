@@ -1,4 +1,4 @@
-"""DSSE PAE plus the strict Makoto v0.2 Ed25519 profile."""
+"""DSSE PAE plus the strict Makoto Ed25519 profile."""
 
 from __future__ import annotations
 
@@ -32,6 +32,7 @@ SUPPORTED_PAYLOAD_TYPES = frozenset(
     {
         "application/vnd.in-toto+json",
         "application/vnd.makoto.handoff.v0.2+json",
+        "application/vnd.makoto.handoff.v0.3+json",
     }
 )
 _PAYLOAD_TYPE = re.compile(r"^[a-z0-9][a-z0-9!#$&^_.+\-]{0,126}/[a-z0-9][a-z0-9!#$&^_.+\-]{0,126}$")
@@ -115,12 +116,12 @@ def pae(payload_type: str, payload: bytes) -> bytes:
 
 
 def validate_payload_type(payload_type: str, *, require_supported: bool = True) -> None:
-    """Validate the exact Makoto v0.2 DSSE payload-type grammar and allowlist."""
+    """Validate the exact Makoto DSSE payload-type grammar and allowlist."""
 
     if _PAYLOAD_TYPE.fullmatch(payload_type) is None:
         raise DsseError("payload type is not a lowercase parameter-free media type")
     if require_supported and payload_type not in SUPPORTED_PAYLOAD_TYPES:
-        raise DsseError("payload type is not supported by Makoto v0.2")
+        raise DsseError("payload type is not supported by Makoto")
 
 
 def canonical_b64encode(data: bytes) -> str:

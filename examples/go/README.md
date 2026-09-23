@@ -1,7 +1,8 @@
 # Go examples
 
 Makoto's language-independent contract is the published JSON Schema set in
-[`schemas/v0.2`](../../schemas/v0.2). These examples deliberately decode JSON
+[`schemas/v0.2`](../../schemas/v0.2) and
+[`schemas/v0.3`](../../schemas/v0.3). These examples deliberately decode JSON
 into `map[string]any`; they do not define a Go representation of the protocol.
 
 Each directory is a small executable example:
@@ -28,7 +29,7 @@ implementation when `uv` is installed.
 
 | Capability | Example |
 |---|---|
-| Validate generic JSON against the published v0.2 schemas | `validate` |
+| Validate generic JSON against the published v0.2 and v0.3 schemas | `validate` |
 | RFC 8785 canonical JSON and SHA-256 | `canonical` |
 | Ed25519 DSSE signing and signature verification | `dsse` |
 | Complete receiver verification | `verify`, through the Python reference CLI |

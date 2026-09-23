@@ -14,13 +14,9 @@ from makoto.bundle import load_attestation
 from makoto.canonical import canonical_json
 from makoto.digest import sha256_bytes
 from makoto.dsse import SigningKey, sign_envelope
-from makoto.model import (
-    ORIGIN_PREDICATE_TYPE,
-    STATEMENT_PAYLOAD_TYPE,
-    TRANSFORM_PREDICATE_TYPE,
-    Attestation,
-)
+from makoto.model import STATEMENT_PAYLOAD_TYPE, Attestation
 from makoto.policy import TrustPolicy
+from makoto.protocol import predicate_type
 from makoto.schema import strict_json_loads, validate_core
 
 VSA_PREDICATE_TYPE = "https://slsa.dev/verification_summary/v1"
@@ -226,7 +222,11 @@ def load_run_evidence(
     report_digests = {
         item["digest"]["sha256"]
         for item in cast(list[dict[str, Any]], parsed["statements"])
-        if item["predicateType"] in {ORIGIN_PREDICATE_TYPE, TRANSFORM_PREDICATE_TYPE}
+        if item["predicateType"]
+        in {
+            predicate_type(parsed["reportVersion"], "origin"),
+            predicate_type(parsed["reportVersion"], "transform"),
+        }
     }
     if set(digests) != report_digests:
         raise AssuranceError("report statements do not exactly match supplied attestations")
@@ -436,11 +436,12 @@ def _validate_vsa_statement(statement: Mapping[str, Any]) -> None:
 
 def _base_origin_level(run: RunEvidence, checks: Mapping[str, str], diagnostics: set[str]) -> int:
     required = ("parse-strictly", "core-schemas", "index-payloads", "signatures")
-    origins = _track_evidence(run, ORIGIN_PREDICATE_TYPE)
+    origin_type = _run_predicate_type(run, "origin")
+    origins = _track_evidence(run, origin_type)
     if not origins or any(checks.get(item) != "pass" for item in required):
         diagnostics.add("E_ORIGIN_LEVEL_1")
         return 0
-    records = _report_records(run.report, ORIGIN_PREDICATE_TYPE)
+    records = _report_records(run.report, origin_type)
     if any(item["coreSchema"] != "pass" for item in records):
         diagnostics.add("E_ORIGIN_LEVEL_1")
         return 0
@@ -455,7 +456,7 @@ def _base_origin_level(run: RunEvidence, checks: Mapping[str, str], diagnostics:
 def _base_transform_level(
     run: RunEvidence, checks: Mapping[str, str], diagnostics: set[str]
 ) -> int:
-    transforms = _track_evidence(run, TRANSFORM_PREDICATE_TYPE)
+    transforms = _track_evidence(run, _run_predicate_type(run, "transform"))
     if not transforms:
         return 0
     required = (
@@ -507,19 +508,19 @@ def _accepted_assessments(
             diagnostics.add("E_ASSESSMENT_SIGNATURE")
             continue
         claims = set(predicate["verifiedLevels"]).intersection(rule["allowedVerifiedLevels"])
-        for track, levels, predicate_type in (
-            ("origin", ORIGIN_LEVELS, ORIGIN_PREDICATE_TYPE),
-            ("transform", TRANSFORM_LEVELS, TRANSFORM_PREDICATE_TYPE),
+        for track, levels, track_predicate_type in (
+            ("origin", ORIGIN_LEVELS, _run_predicate_type(run, "origin")),
+            ("transform", TRANSFORM_LEVELS, _run_predicate_type(run, "transform")),
         ):
             claimed = max((levels.index(item) + 1 for item in claims if item in levels), default=0)
             if claimed < 2:
                 continue
-            expected_subjects = _track_subjects(run, predicate_type)
+            expected_subjects = _track_subjects(run, track_predicate_type)
             if tuple(evidence.statement["subject"]) != expected_subjects:
                 diagnostics.add(f"E_{track.upper()}_ASSESSMENT_SUBJECTS")
                 continue
             expected_inputs = {
-                item.envelope_digest for item in _track_evidence(run, predicate_type)
+                item.envelope_digest for item in _track_evidence(run, track_predicate_type)
             }
             if track == "origin" and claimed >= 3:
                 expected_inputs.update(
@@ -550,9 +551,7 @@ def _accepted_assessments(
             if accepted_level >= 2:
                 groups[track].add(rule["independenceGroup"])
     for track in ("origin", "transform"):
-        if best[track] < 2 and _track_evidence(
-            run, ORIGIN_PREDICATE_TYPE if track == "origin" else TRANSFORM_PREDICATE_TYPE
-        ):
+        if best[track] < 2 and _track_evidence(run, _run_predicate_type(run, track)):
             diagnostics.add(f"E_{track.upper()}_LEVEL_2")
     return {track: (best[track], frozenset(groups[track])) for track in ("origin", "transform")}
 
@@ -674,10 +673,10 @@ def _run_fingerprint(run: RunEvidence) -> tuple[Any, ...] | None:
     nodes: list[tuple[Any, ...]] = []
     for item in run.attestations:
         statement = item.attestation.statement
-        if statement["predicateType"] == ORIGIN_PREDICATE_TYPE:
+        if statement["predicateType"] == _run_predicate_type(run, "origin"):
             roots.extend(subject["digest"]["sha256"] for subject in statement["subject"])
             continue
-        if statement["predicateType"] != TRANSFORM_PREDICATE_TYPE:
+        if statement["predicateType"] != _run_predicate_type(run, "transform"):
             continue
         predicate = statement["predicate"]
         operation = predicate["operation"]
@@ -709,6 +708,10 @@ def _track_evidence(run: RunEvidence, predicate_type: str) -> tuple[EnvelopeEvid
         for item in run.attestations
         if item.attestation.statement["predicateType"] == predicate_type
     )
+
+
+def _run_predicate_type(run: RunEvidence, track: str) -> str:
+    return predicate_type(str(run.report["reportVersion"]), track)
 
 
 def _track_subjects(run: RunEvidence, predicate_type: str) -> tuple[dict[str, Any], ...]:

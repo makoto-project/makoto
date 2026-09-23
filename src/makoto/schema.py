@@ -1,4 +1,4 @@
-"""Strict JSON loading and v0.2 core-schema validation."""
+"""Strict JSON loading and versioned core-schema validation."""
 
 from __future__ import annotations
 
@@ -23,9 +23,19 @@ from makoto.dsse import (
     keyid_from_spki,
     validate_payload_type,
 )
+from makoto.licence import LICENSE_PROFILE_ID, licence_claim_errors
 from makoto.pattern import PatternError, compile_pattern
-from makoto.schema_catalog import SCHEMA_NAMES, schema_directory
-from makoto.standard_registry import verify_standard_registry
+from makoto.protocol import (
+    dataset_manifest_media_type,
+    infer_protocol_version,
+    require_protocol_version,
+    schema_id,
+)
+from makoto.protocol import (
+    predicate_type as core_predicate_type,
+)
+from makoto.schema_catalog import SCHEMA_NAMES_BY_VERSION, schema_directory
+from makoto.standard_registry import verify_standard_profiles, verify_standard_registry
 from makoto.unicode15 import casefold, is_control, normalize_nfc
 
 T = TypeVar("T")
@@ -336,10 +346,13 @@ def strict_json_loads(data: bytes) -> object:
     return value
 
 
-def load_core_schemas(repository_root: Path | None = None) -> dict[str, dict[str, Any]]:
-    directory = schema_directory(repository_root)
+def load_core_schemas(
+    repository_root: Path | None = None, *, protocol_version: str = "0.2"
+) -> dict[str, dict[str, Any]]:
+    require_protocol_version(protocol_version)
+    directory = schema_directory(repository_root, version=protocol_version)
     schemas: dict[str, dict[str, Any]] = {}
-    for name in SCHEMA_NAMES:
+    for name in SCHEMA_NAMES_BY_VERSION[protocol_version]:
         value = strict_json_loads((directory / f"{name}.schema.json").read_bytes())
         if not isinstance(value, dict):
             raise StrictJsonError(f"core schema {name!r} is not an object")
@@ -632,14 +645,12 @@ def _profile_constraint_key(value: Mapping[str, Any]) -> tuple[object, ...]:
     )
 
 
-def _profile_semantics(profile_schema: object) -> list[CoreViolation]:
+def _profile_semantics(profile_schema: object, protocol_version: str) -> list[CoreViolation]:
     violations: list[CoreViolation] = []
     if not isinstance(profile_schema, dict):
         violations.append(CoreViolation("$", "profile resource root must be an object"))
         return violations
-    if profile_schema.get("$schema") != (
-        "https://usemakoto.dev/schema/v0.2/profile-dialect.schema.json"
-    ):
+    if profile_schema.get("$schema") != schema_id(protocol_version, "profile-dialect"):
         violations.append(CoreViolation("$.$schema", "profile dialect identifier is required"))
     root_id = profile_schema.get("$id")
     if not isinstance(root_id, str) or not _fragmentless_absolute_uri(root_id):
@@ -817,7 +828,14 @@ def _profile_semantics(profile_schema: object) -> list[CoreViolation]:
     return violations
 
 
-def semantic_violations(schema_name: str, instance: Mapping[str, Any]) -> list[CoreViolation]:
+def semantic_violations(
+    schema_name: str,
+    instance: Mapping[str, Any],
+    *,
+    protocol_version: str | None = None,
+) -> list[CoreViolation]:
+    version = protocol_version or infer_protocol_version(schema_name, instance)
+    require_protocol_version(version)
     violations = _owned_string_violations(instance)
     if schema_name == "statement":
         names = [subject["name"] for subject in instance["subject"]]
@@ -830,13 +848,36 @@ def semantic_violations(schema_name: str, instance: Mapping[str, Any]) -> list[C
             violations.append(
                 CoreViolation("$.predicateType", "predicate type must be an absolute URI")
             )
+        known_makoto_types = {
+            core_predicate_type(candidate, kind)
+            for candidate in ("0.2", "0.3")
+            for kind in ("origin", "transform")
+        }
+        expected_makoto_types = {
+            core_predicate_type(version, "origin"),
+            core_predicate_type(version, "transform"),
+        }
+        if predicate_type in known_makoto_types and predicate_type not in expected_makoto_types:
+            violations.append(
+                CoreViolation(
+                    "$.predicateType",
+                    "predicate type mixes Makoto protocol identifier families",
+                )
+            )
         nested_schema = {
-            "https://usemakoto.dev/predicate/v0.2/origin": "origin",
-            "https://usemakoto.dev/predicate/v0.2/transform": "transform",
+            core_predicate_type(version, "origin"): "origin",
+            core_predicate_type(version, "transform"): "transform",
         }.get(predicate_type)
         if nested_schema is not None:
             violations.extend(
-                _prefix(semantic_violations(nested_schema, instance["predicate"]), "$.predicate")
+                _prefix(
+                    semantic_violations(
+                        nested_schema,
+                        instance["predicate"],
+                        protocol_version=version,
+                    ),
+                    "$.predicate",
+                )
             )
     elif schema_name in {"origin", "transform"}:
         event = instance["event"]
@@ -935,7 +976,7 @@ def semantic_violations(schema_name: str, instance: Mapping[str, Any]) -> list[C
     elif schema_name == "profile-reference":
         violations.extend(_profile_reference_violations(instance, "$"))
     elif schema_name == "profile-dialect":
-        violations.extend(_profile_semantics(instance))
+        violations.extend(_profile_semantics(instance, version))
     elif schema_name == "catalog":
         violations.extend(
             _sorted_unique(
@@ -993,10 +1034,47 @@ def semantic_violations(schema_name: str, instance: Mapping[str, Any]) -> list[C
             else:
                 folded_names[folded] = index
             violations.extend(_digest_violations(entry["digest"], f"$.entries[{index}].digest"))
+            record_merkle = entry.get("recordMerkle")
+            if isinstance(record_merkle, dict):
+                violations.extend(
+                    _digest_violations(
+                        record_merkle["root"],
+                        f"$.entries[{index}].recordMerkle.root",
+                    )
+                )
             if "mediaType" in entry and not _media_type_valid(str(entry["mediaType"])):
                 violations.append(
                     CoreViolation(f"$.entries[{index}].mediaType", "media type is invalid")
                 )
+    elif schema_name == "record-declaration":
+        if instance["kind"] == "recordHashes":
+            for index, digest in enumerate(instance["hashes"]):
+                violations.extend(_digest_violations(digest, f"$.hashes[{index}]"))
+        else:
+            previous_end = 0
+            for index, record_range in enumerate(instance["ranges"]):
+                offset = record_range["offset"]
+                length = record_range["length"]
+                if index and offset < previous_end:
+                    violations.append(
+                        CoreViolation(
+                            f"$.ranges[{index}].offset",
+                            "byte ranges must be sorted and non-overlapping",
+                        )
+                    )
+                previous_end = offset + length
+    elif schema_name == "record-inclusion-proof":
+        for field in (
+            "manifestStatementDigest",
+            "entryDigest",
+            "recordDigest",
+        ):
+            violations.extend(_digest_violations(instance[field], f"$.{field}"))
+        for index, digest in enumerate(instance["auditPath"]):
+            violations.extend(_digest_violations(digest, f"$.auditPath[{index}]"))
+        if instance["recordIndex"] >= instance["recordCount"]:
+            violations.append(CoreViolation("$.recordIndex", "record index is out of range"))
+        violations.extend(_logical_path_violations(instance["entryName"], "$.entryName"))
     elif schema_name == "handoff":
         for field in ("roots", "heads", "statements"):
             violations.extend(
@@ -1290,8 +1368,8 @@ def semantic_violations(schema_name: str, instance: Mapping[str, Any]) -> list[C
                 violations.append(
                     CoreViolation(f"{path}.minimumSignatures", "threshold exceeds authorized keys")
                 )
-        core_origin = "https://usemakoto.dev/predicate/v0.2/origin"
-        core_transform = "https://usemakoto.dev/predicate/v0.2/transform"
+        core_origin = core_predicate_type(version, "origin")
+        core_transform = core_predicate_type(version, "transform")
         for index, rule in enumerate(instance["rules"]):
             path = f"$.rules[{index}]"
             if not _absolute_uri(str(rule["id"])):
@@ -1498,10 +1576,13 @@ def validate_core(
     instance: object,
     *,
     repository_root: Path | None = None,
+    protocol_version: str | None = None,
 ) -> None:
-    if schema_name not in SCHEMA_NAMES:
+    version = protocol_version or infer_protocol_version(schema_name, instance)
+    require_protocol_version(version)
+    if schema_name not in SCHEMA_NAMES_BY_VERSION[version]:
         raise ValueError(f"unknown core schema {schema_name!r}")
-    schemas = load_core_schemas(repository_root)
+    schemas = load_core_schemas(repository_root, protocol_version=version)
     validator = Draft202012Validator(schemas[schema_name], registry=build_registry(schemas))
     schema_errors = sorted(
         validator.iter_errors(instance), key=lambda error: list(error.absolute_path)
@@ -1514,15 +1595,18 @@ def validate_core(
         for error in schema_errors
     ]
     if not violations and schema_name == "profile-dialect":
-        violations.extend(_profile_semantics(instance))
+        violations.extend(_profile_semantics(instance, version))
     elif not violations and isinstance(instance, dict):
-        violations.extend(semantic_violations(schema_name, instance))
+        violations.extend(semantic_violations(schema_name, instance, protocol_version=version))
     if violations:
         raise CoreValidationError(violations)
 
 
 def load_catalog_resources(
-    catalog_paths: Sequence[Path], *, repository_root: Path | None = None
+    catalog_paths: Sequence[Path],
+    *,
+    repository_root: Path | None = None,
+    protocol_version: str = "0.2",
 ) -> dict[tuple[str, str], CatalogResource]:
     """Load strict, local-only catalogs and verify every declared resource binding."""
 
@@ -1531,7 +1615,12 @@ def load_catalog_resources(
         parsed = strict_json_loads(catalog_path.read_bytes())
         if not isinstance(parsed, dict):
             raise ProfileResolutionError(f"catalog {catalog_path} is not an object")
-        validate_core("catalog", parsed, repository_root=repository_root)
+        validate_core(
+            "catalog",
+            parsed,
+            repository_root=repository_root,
+            protocol_version=protocol_version,
+        )
         for item in parsed["resources"]:
             resource_path = catalog_path.parent / item["path"]
             exact_bytes = resource_path.read_bytes()
@@ -1558,25 +1647,73 @@ def validate_with_catalog(
     *,
     catalog_paths: Sequence[Path],
     repository_root: Path | None = None,
+    protocol_version: str | None = None,
 ) -> ProfileResult:
     """Resolve one exact profile closure offline and validate an instance."""
 
     verify_standard_registry()
-    validate_core("profile-reference", profile_reference, repository_root=repository_root)
-    if profile_reference["id"] == DATASET_MANIFEST_SCHEMA_ID:
+    version = protocol_version or infer_protocol_version("profile-reference", profile_reference)
+    validate_core(
+        "profile-reference",
+        profile_reference,
+        repository_root=repository_root,
+        protocol_version=version,
+    )
+    manifest_schema_id = schema_id(version, "dataset-manifest")
+    if profile_reference["id"] == manifest_schema_id:
         subject_name = profile_reference.get("subjectName")
         if not isinstance(subject_name, str) or profile_reference != (
-            core_dataset_manifest_profile_reference(subject_name, repository_root=repository_root)
+            core_dataset_manifest_profile_reference(
+                subject_name,
+                repository_root=repository_root,
+                protocol_version=version,
+            )
         ):
             raise ProfileResolutionError(
                 "dataset-manifest profile does not match the immutable core identity"
             )
         try:
-            validate_core("dataset-manifest", instance, repository_root=repository_root)
+            validate_core(
+                "dataset-manifest",
+                instance,
+                repository_root=repository_root,
+                protocol_version=version,
+            )
         except CoreValidationError as error:
             return ProfileResult(valid=False, errors=(str(error),))
         return ProfileResult(valid=True, errors=())
-    resources = load_catalog_resources(catalog_paths, repository_root=repository_root)
+    if profile_reference["id"] == LICENSE_PROFILE_ID:
+        standard_profiles = verify_standard_profiles()
+        standard_resource = standard_profiles[LICENSE_PROFILE_ID]
+        if profile_reference != standard_license_profile_reference(repository_root=repository_root):
+            raise ProfileResolutionError(
+                "licence profile does not match the immutable standard identity"
+            )
+        standard_schema = cast(dict[str, Any], standard_resource["schema"])
+        validate_core(
+            "profile-dialect",
+            standard_schema,
+            repository_root=repository_root,
+            protocol_version="0.3",
+        )
+        validator = MakotoProfileValidator(standard_schema)
+        standard_errors = [
+            error.message
+            for error in sorted(
+                validator.iter_errors(instance), key=lambda error: list(error.absolute_path)
+            )
+        ]
+        if not standard_errors and isinstance(instance, dict):
+            standard_errors.extend(licence_claim_errors(instance))
+        return ProfileResult(
+            valid=not standard_errors,
+            errors=tuple(standard_errors),
+        )
+    resources = load_catalog_resources(
+        catalog_paths,
+        repository_root=repository_root,
+        protocol_version=version,
+    )
     root_key = (profile_reference["id"], profile_reference["digest"]["sha256"])
     root = resources.get(root_key)
     if root is None:
@@ -1584,7 +1721,9 @@ def validate_with_catalog(
     declared_keys = {
         (item["id"], item["digest"]["sha256"]) for item in profile_reference["resources"]
     }
-    discovered_keys = _discover_external_resources(root.schema, root.identifier, resources)
+    discovered_keys = _discover_external_resources(
+        root.schema, root.identifier, resources, protocol_version=version
+    )
     if discovered_keys != declared_keys:
         raise ProfileResolutionError(
             "declared resources do not equal the transitive schema closure"
@@ -1596,9 +1735,14 @@ def validate_with_catalog(
             raise ProfileResolutionError(f"profile resource is unavailable: {key[0]}")
         resolved.append(resource)
     for resource in resolved:
-        validate_core("profile-dialect", resource.schema, repository_root=repository_root)
+        validate_core(
+            "profile-dialect",
+            resource.schema,
+            repository_root=repository_root,
+            protocol_version=version,
+        )
     registry: Registry[Any] = Registry()
-    for core_schema in load_core_schemas(repository_root).values():
+    for core_schema in load_core_schemas(repository_root, protocol_version=version).values():
         registry = registry.with_resource(core_schema["$id"], Resource.from_contents(core_schema))
     for resource in resolved:
         registry = registry.with_resource(
@@ -1622,6 +1766,7 @@ def validate_with_schema_bytes(
     expected_identifier: str | None = None,
     expected_digest: str | None = None,
     repository_root: Path | None = None,
+    protocol_version: str = "0.2",
 ) -> ProfileResult:
     """Validate one instance against a standalone, offline profile-dialect schema.
 
@@ -1638,7 +1783,12 @@ def validate_with_schema_bytes(
     root = strict_json_loads(schema_bytes)
     if not isinstance(root, dict):
         raise ProfileResolutionError("schema root must be one JSON object")
-    validate_core("profile-dialect", root, repository_root=repository_root)
+    validate_core(
+        "profile-dialect",
+        root,
+        repository_root=repository_root,
+        protocol_version=protocol_version,
+    )
     root_identifier = root.get("$id")
     if expected_identifier is not None and root_identifier != expected_identifier:
         raise ProfileResolutionError("schema $id does not match the selected URI")
@@ -1647,13 +1797,15 @@ def validate_with_schema_bytes(
         identifier = reference.split("#", 1)[0]
         if not identifier:
             continue
-        if not identifier.startswith("https://usemakoto.dev/schema/v0.2/"):
+        if not identifier.startswith(f"https://usemakoto.dev/schema/v{protocol_version}/"):
             raise ProfileResolutionError(
                 f"bare schema has a non-core external reference: {identifier}"
             )
 
     registry: Registry[Any] = Registry()
-    for core_schema in load_core_schemas(repository_root).values():
+    for core_schema in load_core_schemas(
+        repository_root, protocol_version=protocol_version
+    ).values():
         registry = registry.with_resource(core_schema["$id"], Resource.from_contents(core_schema))
     validator = MakotoProfileValidator(root, registry=registry)
     errors = tuple(
@@ -1674,6 +1826,7 @@ def create_profile_reference(
     subject_name: str | None = None,
     media_type: str | None = None,
     repository_root: Path | None = None,
+    protocol_version: str = "0.2",
 ) -> dict[str, Any]:
     """Create a digest-pinned reference for a root with an explicitly cataloged closure."""
 
@@ -1682,9 +1835,12 @@ def create_profile_reference(
     if not isinstance(root_value, dict):
         raise ProfileResolutionError("profile root must be an object")
     root_id = root_value["$id"]
-    if root_id == DATASET_MANIFEST_SCHEMA_ID:
+    manifest_schema_id = schema_id(protocol_version, "dataset-manifest")
+    manifest_media_type = dataset_manifest_media_type(protocol_version)
+    if root_id == manifest_schema_id:
         expected_bytes = (
-            schema_directory(repository_root) / "dataset-manifest.schema.json"
+            schema_directory(repository_root, version=protocol_version)
+            / "dataset-manifest.schema.json"
         ).read_bytes()
         if root_bytes != expected_bytes:
             raise ProfileResolutionError(
@@ -1694,7 +1850,7 @@ def create_profile_reference(
             target != "artifact"
             or not critical
             or subject_name is None
-            or media_type != DATASET_MANIFEST_MEDIA_TYPE
+            or media_type != manifest_media_type
             or catalog_paths
         ):
             raise ProfileResolutionError(
@@ -1702,12 +1858,28 @@ def create_profile_reference(
                 "core media type, a subject name, and no external catalog"
             )
         return core_dataset_manifest_profile_reference(
-            subject_name, repository_root=repository_root
+            subject_name,
+            repository_root=repository_root,
+            protocol_version=protocol_version,
         )
-    validate_core("profile-dialect", root_value, repository_root=repository_root)
-    resources = load_catalog_resources(catalog_paths, repository_root=repository_root)
+    validate_core(
+        "profile-dialect",
+        root_value,
+        repository_root=repository_root,
+        protocol_version=protocol_version,
+    )
+    resources = load_catalog_resources(
+        catalog_paths,
+        repository_root=repository_root,
+        protocol_version=protocol_version,
+    )
     root_digest = sha256_bytes(root_bytes)
-    declared_resources = _discover_external_resources(root_value, root_id, resources)
+    declared_resources = _discover_external_resources(
+        root_value,
+        root_id,
+        resources,
+        protocol_version=protocol_version,
+    )
     resource_refs = [
         {"id": identifier, "digest": {"sha256": digest}}
         for identifier, digest in sorted(declared_resources)
@@ -1730,7 +1902,12 @@ def create_profile_reference(
         reference.update(subjectName=subject_name, mediaType=media_type)
     elif subject_name is not None or media_type is not None:
         raise ProfileResolutionError("non-artifact profile forbids subject name and media type")
-    validate_core("profile-reference", reference, repository_root=repository_root)
+    validate_core(
+        "profile-reference",
+        reference,
+        repository_root=repository_root,
+        protocol_version=protocol_version,
+    )
     return reference
 
 
@@ -1738,23 +1915,28 @@ def core_dataset_manifest_profile_reference(
     subject_name: str,
     *,
     repository_root: Path | None = None,
+    protocol_version: str = "0.2",
 ) -> dict[str, Any]:
     """Return the sole exact core profile identity for one dataset-manifest subject."""
 
     if not subject_name:
         raise ProfileResolutionError("dataset-manifest profile requires a subject name")
-    root_path = schema_directory(repository_root) / "dataset-manifest.schema.json"
+    manifest_schema_id = schema_id(protocol_version, "dataset-manifest")
+    manifest_media_type = dataset_manifest_media_type(protocol_version)
+    root_path = (
+        schema_directory(repository_root, version=protocol_version) / "dataset-manifest.schema.json"
+    )
     root_bytes = root_path.read_bytes()
     actual_digest = sha256_bytes(root_bytes)
     catalog_value = strict_json_loads(
-        (schema_directory(repository_root) / "catalog.json").read_bytes()
+        (schema_directory(repository_root, version=protocol_version) / "catalog.json").read_bytes()
     )
     if not isinstance(catalog_value, dict):
         raise ProfileResolutionError("core schema catalog is not an object")
     matches = [
         resource
         for resource in catalog_value.get("resources", [])
-        if isinstance(resource, dict) and resource.get("id") == DATASET_MANIFEST_SCHEMA_ID
+        if isinstance(resource, dict) and resource.get("id") == manifest_schema_id
     ]
     if len(matches) != 1 or matches[0].get("digest") != {"sha256": actual_digest}:
         raise ProfileResolutionError(
@@ -1763,19 +1945,50 @@ def core_dataset_manifest_profile_reference(
     root_digest = cast(dict[str, str], matches[0]["digest"])
     descriptor = {
         "resources": [],
-        "root": {"digest": root_digest, "id": DATASET_MANIFEST_SCHEMA_ID},
+        "root": {"digest": root_digest, "id": manifest_schema_id},
     }
     reference: dict[str, Any] = {
-        "id": DATASET_MANIFEST_SCHEMA_ID,
+        "id": manifest_schema_id,
         "digest": root_digest,
         "closureDigest": digest_object(sha256_bytes(canonical_json(descriptor))),
         "target": "artifact",
         "subjectName": subject_name,
-        "mediaType": DATASET_MANIFEST_MEDIA_TYPE,
+        "mediaType": manifest_media_type,
         "critical": True,
         "resources": [],
     }
-    validate_core("profile-reference", reference, repository_root=repository_root)
+    validate_core(
+        "profile-reference",
+        reference,
+        repository_root=repository_root,
+        protocol_version=protocol_version,
+    )
+    return reference
+
+
+def standard_license_profile_reference(*, repository_root: Path | None = None) -> dict[str, Any]:
+    """Return the immutable v0.3 standard licence-claim profile identity."""
+
+    resource = verify_standard_profiles()[LICENSE_PROFILE_ID]
+    root_digest = digest_object(str(resource["digest"]))
+    descriptor = {
+        "resources": [],
+        "root": {"digest": root_digest, "id": LICENSE_PROFILE_ID},
+    }
+    reference: dict[str, Any] = {
+        "id": LICENSE_PROFILE_ID,
+        "digest": root_digest,
+        "closureDigest": digest_object(sha256_bytes(canonical_json(descriptor))),
+        "target": "statement",
+        "critical": True,
+        "resources": [],
+    }
+    validate_core(
+        "profile-reference",
+        reference,
+        repository_root=repository_root,
+        protocol_version="0.3",
+    )
     return reference
 
 
@@ -1783,6 +1996,8 @@ def _discover_external_resources(
     root: Mapping[str, Any],
     root_id: str,
     resources: Mapping[tuple[str, str], CatalogResource],
+    *,
+    protocol_version: str,
 ) -> set[tuple[str, str]]:
     by_id: dict[str, list[CatalogResource]] = {}
     for resource in resources.values():
@@ -1796,13 +2011,13 @@ def _discover_external_resources(
             identifier = reference.split("#", 1)[0]
             if not identifier or identifier == base_id:
                 continue
-            if identifier.startswith("https://usemakoto.dev/schema/v0.2/"):
+            if identifier.startswith(f"https://usemakoto.dev/schema/v{protocol_version}/"):
                 continue
             if not resolved.scheme:
                 from urllib.parse import urljoin
 
                 identifier = urljoin(base_id, identifier)
-            if identifier.startswith("https://usemakoto.dev/schema/v0.2/"):
+            if identifier.startswith(f"https://usemakoto.dev/schema/v{protocol_version}/"):
                 continue
             candidates = by_id.get(identifier, [])
             if len(candidates) != 1:

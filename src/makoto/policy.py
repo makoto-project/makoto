@@ -47,6 +47,10 @@ class TrustPolicy:
     exact_bytes: bytes
     public_keys: Mapping[str, bytes]
 
+    @property
+    def protocol_version(self) -> str:
+        return cast(str, self.value["version"])
+
     @classmethod
     def from_bytes(cls, data: bytes, *, repository_root: Path) -> TrustPolicy:
         parsed = strict_json_loads(data)

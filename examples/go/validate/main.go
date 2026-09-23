@@ -11,16 +11,18 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
-var schemaIDs = map[string]string{
-	"bundle":              "https://usemakoto.dev/schema/v0.2/bundle.schema.json",
-	"dataset-manifest":    "https://usemakoto.dev/schema/v0.2/dataset-manifest.schema.json",
-	"envelope":            "https://usemakoto.dev/schema/v0.2/envelope.schema.json",
-	"handoff":             "https://usemakoto.dev/schema/v0.2/handoff.schema.json",
-	"origin":              "https://usemakoto.dev/schema/v0.2/origin.schema.json",
-	"statement":           "https://usemakoto.dev/schema/v0.2/statement.schema.json",
-	"transform":           "https://usemakoto.dev/schema/v0.2/transform.schema.json",
-	"trust-policy":        "https://usemakoto.dev/schema/v0.2/trust-policy.schema.json",
-	"verification-report": "https://usemakoto.dev/schema/v0.2/verification-report.schema.json",
+var schemaNames = map[string]string{
+	"bundle":                 "bundle",
+	"dataset-manifest":       "dataset-manifest",
+	"envelope":               "envelope",
+	"handoff":                "handoff",
+	"origin":                 "origin",
+	"record-declaration":     "record-declaration",
+	"record-inclusion-proof": "record-inclusion-proof",
+	"statement":              "statement",
+	"transform":              "transform",
+	"trust-policy":           "trust-policy",
+	"verification-report":    "verification-report",
 }
 
 type offlineLoader struct{}
@@ -30,10 +32,19 @@ func (offlineLoader) Load(url string) (any, error) {
 }
 
 func validate(schemaDir, kind string, document []byte) error {
-	schemaID, ok := schemaIDs[kind]
+	schemaName, ok := schemaNames[kind]
 	if !ok {
 		return fmt.Errorf("unknown document kind %q", kind)
 	}
+	versionDirectory := filepath.Base(filepath.Clean(schemaDir))
+	if versionDirectory != "v0.2" && versionDirectory != "v0.3" {
+		return fmt.Errorf("unsupported schema directory %q", versionDirectory)
+	}
+	schemaID := fmt.Sprintf(
+		"https://usemakoto.dev/schema/%s/%s.schema.json",
+		versionDirectory,
+		schemaName,
+	)
 	compiler := jsonschema.NewCompiler()
 	compiler.UseLoader(offlineLoader{})
 	paths, err := filepath.Glob(filepath.Join(schemaDir, "*.schema.json"))
