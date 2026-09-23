@@ -3,13 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import pytest
 from jsonschema import Draft202012Validator
 
 from makoto.schema import strict_json_loads
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA_PATH = ROOT / "schemas" / "v0.2" / "verification-report.schema.json"
-MAP_PATH = ROOT / "testdata" / "v0.2" / "diagnostic-map.json"
 
 
 def _object_variants(schema: dict[str, Any]) -> list[dict[str, Any]]:
@@ -23,15 +22,18 @@ def _object_variants(schema: dict[str, Any]) -> list[dict[str, Any]]:
     return variants
 
 
-def test_diagnostic_map_closes_codes_owners_contexts_and_multiplicity() -> None:
-    report_schema = strict_json_loads(SCHEMA_PATH.read_bytes())
-    diagnostic_map = strict_json_loads(MAP_PATH.read_bytes())
+@pytest.mark.parametrize("version", ["0.2", "0.3"])
+def test_diagnostic_map_closes_codes_owners_contexts_and_multiplicity(version: str) -> None:
+    schema_path = ROOT / "schemas" / f"v{version}" / "verification-report.schema.json"
+    map_path = ROOT / "testdata" / f"v{version}" / "diagnostic-map.json"
+    report_schema = strict_json_loads(schema_path.read_bytes())
+    diagnostic_map = strict_json_loads(map_path.read_bytes())
     assert isinstance(report_schema, dict)
     assert isinstance(diagnostic_map, dict)
     Draft202012Validator.check_schema(report_schema)
 
     rows = diagnostic_map["rows"]
-    assert diagnostic_map["version"] == "0.2"
+    assert diagnostic_map["version"] == version
     assert rows
     assert len({row["triggerId"] for row in rows}) == len(rows)
     assert len({(row["code"], row["step"], row["triggerId"]) for row in rows}) == len(rows)

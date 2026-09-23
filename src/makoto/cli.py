@@ -48,6 +48,14 @@ from makoto.dsse import (
 )
 from makoto.model import Artifact, Attestation, TransformationInput, create_origin, create_transform
 from makoto.policy import TrustPolicy
+from makoto.protocol import predicate_type
+from makoto.records import (
+    create_record_inclusion_proof,
+    load_record_declaration,
+    record_commitment,
+    record_digests_from_declaration,
+    verify_record_inclusion_proof,
+)
 from makoto.report import report_bytes
 from makoto.schema import (
     CoreValidationError,
@@ -56,6 +64,7 @@ from makoto.schema import (
     core_dataset_manifest_profile_reference,
     create_profile_reference,
     load_catalog_resources,
+    standard_license_profile_reference,
     strict_json_loads,
     validate_core,
     validate_with_catalog,
@@ -203,6 +212,7 @@ def _parser() -> argparse.ArgumentParser:
     handoff_create.add_argument("--key", type=Path, action="append", required=True)
     handoff_create.add_argument("--out", type=Path, required=True)
     handoff_create.add_argument("--force", action="store_true")
+    handoff_create.add_argument("--protocol-version", choices=("0.2", "0.3"), default="0.2")
     handoff_create.set_defaults(handler=_cmd_handoff_create)
 
     verify = commands.add_parser("verify")
@@ -234,6 +244,7 @@ def _parser() -> argparse.ArgumentParser:
     schema_validate.add_argument("--schema-digest", type=_digest_flag)
     schema_validate.add_argument("--schema-catalog", type=Path, action="append", default=[])
     schema_validate.add_argument("--verbose", action="store_true")
+    schema_validate.add_argument("--protocol-version", choices=("0.2", "0.3"), default="0.2")
     schema_validate.set_defaults(handler=_cmd_schema_validate)
 
     profile = commands.add_parser("profile")
@@ -250,6 +261,38 @@ def _parser() -> argparse.ArgumentParser:
     profile_create.add_argument("--out", type=Path, required=True)
     profile_create.add_argument("--force", action="store_true")
     profile_create.set_defaults(handler=_cmd_profile_create)
+    profile_create.add_argument("--protocol-version", choices=("0.2", "0.3"), default="0.2")
+    standard_license = profile_commands.add_parser("standard-license")
+    standard_license.add_argument("--out", type=Path, required=True)
+    standard_license.add_argument("--force", action="store_true")
+    standard_license.set_defaults(handler=_cmd_profile_standard_license)
+
+    record = commands.add_parser("record")
+    record_commands = record.add_subparsers(dest="record_command", required=True)
+    record_root = record_commands.add_parser("root")
+    record_root.add_argument("--declaration", type=Path, required=True)
+    record_root.add_argument("--entry", type=Path)
+    record_root.add_argument("--json", action="store_true")
+    record_root.set_defaults(handler=_cmd_record_root)
+    record_prove = record_commands.add_parser("prove")
+    _add_record_bundle_arguments(record_prove)
+    record_prove.add_argument("--manifest-statement-digest", type=_digest_flag, required=True)
+    record_prove.add_argument("--manifest-subject-name", required=True)
+    record_prove.add_argument("--entry-name", required=True)
+    record_prove.add_argument("--declaration", type=Path, required=True)
+    record_prove.add_argument("--entry", type=Path)
+    record_prove.add_argument("--record-index", type=int, required=True)
+    record_prove.add_argument("--out", type=Path, required=True)
+    record_prove.add_argument("--force", action="store_true")
+    record_prove.set_defaults(handler=_cmd_record_prove)
+    record_verify = record_commands.add_parser("verify")
+    _add_record_bundle_arguments(record_verify)
+    record_verify.add_argument("--proof", type=Path, required=True)
+    supplied_record = record_verify.add_mutually_exclusive_group()
+    supplied_record.add_argument("--record", type=Path)
+    supplied_record.add_argument("--entry", type=Path)
+    record_verify.add_argument("--json", action="store_true")
+    record_verify.set_defaults(handler=_cmd_record_verify)
 
     policy = commands.add_parser("policy")
     policy_commands = policy.add_subparsers(dest="policy_command", required=True)
@@ -293,6 +336,7 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def _add_common_attestation_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--protocol-version", choices=("0.2", "0.3"), default="0.2")
     parser.add_argument("--subject", dest="subject_inputs", action=_SubjectArgument, default=[])
     parser.add_argument(
         "--subject-binding",
@@ -308,6 +352,12 @@ def _add_common_attestation_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--key", type=Path, action="append", required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--force", action="store_true")
+
+
+def _add_record_bundle_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--bundle", type=Path, required=True)
+    parser.add_argument("--policy", type=Path, required=True)
+    parser.add_argument("--schema-catalog", type=Path, action="append", default=[])
 
 
 def _cmd_digest(args: argparse.Namespace) -> int:
@@ -382,6 +432,7 @@ def _cmd_attest_origin(args: argparse.Namespace) -> int:
         source_version=metadata.get("version"),
         profiles=profiles,
         extensions=extensions,
+        protocol_version=args.protocol_version,
     )
     _validate_claimed_profiles(attestation.statement, artifacts, profiles, args.schema_catalog)
     _write_json(args.out, attestation.envelope, force=args.force)
@@ -420,7 +471,9 @@ def _cmd_attest_transform(args: argparse.Namespace) -> int:
                     "predecessor material bytes do not match the selected predecessor subject"
                 )
             expected_profile = core_dataset_manifest_profile_reference(
-                binding["subjectName"], repository_root=REPOSITORY_ROOT
+                binding["subjectName"],
+                repository_root=REPOSITORY_ROOT,
+                protocol_version=args.protocol_version,
             )
             if expected_profile not in predecessor.statement["predicate"].get("profiles", []):
                 raise CliInputError(
@@ -468,6 +521,7 @@ def _cmd_attest_transform(args: argparse.Namespace) -> int:
         parameters_digest=metadata.get("parametersDigest"),
         profiles=profiles,
         extensions=extensions,
+        protocol_version=args.protocol_version,
     )
     _validate_claimed_profiles(attestation.statement, artifacts, profiles, args.schema_catalog)
     _write_json(args.out, attestation.envelope, force=args.force)
@@ -522,7 +576,9 @@ def _cmd_handoff_create(args: argparse.Namespace) -> int:
             binding_path.parent / binding["path"], name=binding["subjectName"]
         )
         dataset_profile = core_dataset_manifest_profile_reference(
-            artifact.name, repository_root=REPOSITORY_ROOT
+            artifact.name,
+            repository_root=REPOSITORY_ROOT,
+            protocol_version=args.protocol_version,
         )
         if dataset_profile in statement.statement["predicate"].get("profiles", []):
             dataset_manifests.append((artifact, statement))
@@ -565,6 +621,7 @@ def _cmd_handoff_create(args: argparse.Namespace) -> int:
         schema_catalog_paths=args.schema_catalog,
         external_profiles=[_strict_object(path) for path in args.external_profile],
         force=args.force,
+        protocol_version=args.protocol_version,
     )
     return 0
 
@@ -616,7 +673,12 @@ def _cmd_schema_validate(args: argparse.Namespace) -> int:
         if args.schema_digest is not None:
             raise CliInputError("--schema-digest cannot be used with --profile-reference")
         reference = _strict_object(args.profile_reference)
-        validate_core("profile-reference", reference, repository_root=REPOSITORY_ROOT)
+        validate_core(
+            "profile-reference",
+            reference,
+            repository_root=REPOSITORY_ROOT,
+            protocol_version=args.protocol_version,
+        )
         try:
             instance_bytes = args.instance.read_bytes()
         except OSError as error:
@@ -633,6 +695,7 @@ def _cmd_schema_validate(args: argparse.Namespace) -> int:
                     reference,
                     catalog_paths=args.schema_catalog,
                     repository_root=REPOSITORY_ROOT,
+                    protocol_version=args.protocol_version,
                 )
                 if not result.valid:
                     detail = f"line {line_number}, instance {instance_index}: " + "; ".join(
@@ -649,6 +712,7 @@ def _cmd_schema_validate(args: argparse.Namespace) -> int:
                 reference,
                 catalog_paths=args.schema_catalog,
                 repository_root=REPOSITORY_ROOT,
+                protocol_version=args.protocol_version,
             )
             if not result.valid:
                 return _invalid_schema_instance(args, "; ".join(result.errors))
@@ -659,14 +723,21 @@ def _cmd_schema_validate(args: argparse.Namespace) -> int:
             return _invalid_schema_instance(args, str(error))
         schema_argument = str(args.schema)
         legacy_name = schema_argument.removesuffix(".schema.json")
-        legacy_path = REPOSITORY_ROOT / "schemas" / "v0.2" / f"{legacy_name}.schema.json"
+        legacy_path = (
+            REPOSITORY_ROOT / "schemas" / f"v{args.protocol_version}" / f"{legacy_name}.schema.json"
+        )
         if legacy_path.is_file() and "/" not in schema_argument and "\\" not in schema_argument:
             if args.schema_digest is not None:
                 actual_digest = sha256_bytes(legacy_path.read_bytes())
                 if actual_digest != args.schema_digest["sha256"]:
                     raise CliInputError("schema digest does not match the selected schema")
             try:
-                validate_core(legacy_name, instance, repository_root=REPOSITORY_ROOT)
+                validate_core(
+                    legacy_name,
+                    instance,
+                    repository_root=REPOSITORY_ROOT,
+                    protocol_version=args.protocol_version,
+                )
             except CoreValidationError as error:
                 return _invalid_schema_instance(args, str(error))
         else:
@@ -676,6 +747,7 @@ def _cmd_schema_validate(args: argparse.Namespace) -> int:
                     args.schema_digest["sha256"] if args.schema_digest is not None else None
                 ),
                 catalog_paths=args.schema_catalog,
+                protocol_version=args.protocol_version,
             )
             result = validate_with_schema_bytes(
                 instance,
@@ -685,6 +757,7 @@ def _cmd_schema_validate(args: argparse.Namespace) -> int:
                     args.schema_digest["sha256"] if args.schema_digest is not None else None
                 ),
                 repository_root=REPOSITORY_ROOT,
+                protocol_version=args.protocol_version,
             )
             if not result.valid:
                 return _invalid_schema_instance(args, "; ".join(result.errors))
@@ -724,6 +797,7 @@ def _resolve_standalone_schema(
     *,
     schema_digest: str | None,
     catalog_paths: list[Path],
+    protocol_version: str,
 ) -> tuple[bytes, str | None]:
     is_windows_drive = (
         len(argument) >= 3
@@ -740,7 +814,11 @@ def _resolve_standalone_schema(
         raise CliInputError("--schema must be an absolute fragmentless URI or explicit path")
     if schema_digest is None:
         raise CliInputError("URI --schema requires --schema-digest")
-    resources = load_catalog_resources(catalog_paths, repository_root=REPOSITORY_ROOT)
+    resources = load_catalog_resources(
+        catalog_paths,
+        repository_root=REPOSITORY_ROOT,
+        protocol_version=protocol_version,
+    )
     resource = resources.get((argument, schema_digest))
     if resource is None:
         raise CliInputError("URI schema is unavailable at the selected digest")
@@ -756,8 +834,184 @@ def _cmd_profile_create(args: argparse.Namespace) -> int:
         subject_name=args.subject_name,
         media_type=args.media_type,
         repository_root=REPOSITORY_ROOT,
+        protocol_version=args.protocol_version,
     )
     _write_json(args.out, reference, force=args.force)
+    return 0
+
+
+def _cmd_profile_standard_license(args: argparse.Namespace) -> int:
+    _write_json(
+        args.out,
+        standard_license_profile_reference(repository_root=REPOSITORY_ROOT),
+        force=args.force,
+    )
+    return 0
+
+
+def _record_verification_request(args: argparse.Namespace) -> VerificationRequest:
+    return VerificationRequest(
+        bundle_root=args.bundle,
+        policy_path=args.policy,
+        repository_root=REPOSITORY_ROOT,
+        schema_catalogs=tuple(args.schema_catalog),
+    )
+
+
+def _verified_record_entry(
+    args: argparse.Namespace,
+    *,
+    manifest_statement_digest: str,
+    manifest_subject_name: str,
+    entry_name: str,
+) -> tuple[Any, dict[str, Any]]:
+    report = verify_bundle(_record_verification_request(args))
+    if report["decision"] != "allow":
+        raise CliInputError("bundle verification did not allow the record proof operation")
+    if report["reportVersion"] != "0.3":
+        raise CliInputError("record proofs require a verified Makoto v0.3 bundle")
+    bundle = _strict_object(args.bundle / "bundle.json")
+    mappings = [
+        item
+        for item in bundle["artifacts"]
+        if item["statementDigest"]["sha256"] == manifest_statement_digest
+        and item["subjectName"] == manifest_subject_name
+    ]
+    if len(mappings) != 1:
+        raise CliInputError("proof identity does not select one dataset manifest artifact")
+    mapping = mappings[0]
+    manifest_bytes = (args.bundle / mapping["path"]).read_bytes()
+    if sha256_bytes(manifest_bytes) != mapping["digest"]["sha256"]:
+        raise CliInputError("dataset manifest changed after bundle verification")
+    attestation_items = [
+        item
+        for item in bundle["attestations"]
+        if item["statementDigest"]["sha256"] == manifest_statement_digest
+    ]
+    if len(attestation_items) != 1:
+        raise CliInputError("dataset manifest statement is absent from the bundle index")
+    attestation = load_attestation(
+        args.bundle / attestation_items[0]["path"],
+        repository_root=REPOSITORY_ROOT,
+    )
+    if attestation.protocol_version != "0.3" or attestation.digest()["sha256"] != (
+        manifest_statement_digest
+    ):
+        raise CliInputError("dataset manifest statement changed after bundle verification")
+    if attestation.subject(manifest_subject_name)["digest"] != mapping["digest"]:
+        raise CliInputError("dataset manifest bytes are not the signed subject")
+    index = parse_dataset_manifest(manifest_bytes, repository_root=REPOSITORY_ROOT)
+    member = index.member(entry_name)
+    if member is None or member.record_root is None or member.record_count is None:
+        raise CliInputError("dataset entry has no v0.3 record Merkle commitment")
+    return member, report
+
+
+def _cmd_record_root(args: argparse.Namespace) -> int:
+    declaration = load_record_declaration(args.declaration, repository_root=REPOSITORY_ROOT)
+    entry_bytes = args.entry.read_bytes() if args.entry is not None else None
+    digests = record_digests_from_declaration(
+        declaration,
+        entry_bytes=entry_bytes,
+        repository_root=REPOSITORY_ROOT,
+    )
+    if args.record_index >= len(digests):
+        raise CliInputError("record index is out of range")
+    commitment = record_commitment(digests)
+    _emit(
+        commitment if args.json else f"sha256:{commitment['root']['sha256']}",
+        json_output=args.json,
+    )
+    return 0
+
+
+def _cmd_record_prove(args: argparse.Namespace) -> int:
+    if args.record_index < 0:
+        raise CliInputError("record index must be nonnegative")
+    statement_digest = args.manifest_statement_digest["sha256"]
+    member, _report = _verified_record_entry(
+        args,
+        manifest_statement_digest=statement_digest,
+        manifest_subject_name=args.manifest_subject_name,
+        entry_name=args.entry_name,
+    )
+    declaration = load_record_declaration(args.declaration, repository_root=REPOSITORY_ROOT)
+    entry_bytes = args.entry.read_bytes() if args.entry is not None else None
+    if entry_bytes is not None and sha256_bytes(entry_bytes) != member.digest:
+        raise CliInputError("entry bytes do not match the verified dataset member")
+    digests = record_digests_from_declaration(
+        declaration,
+        entry_bytes=entry_bytes,
+        repository_root=REPOSITORY_ROOT,
+    )
+    commitment = record_commitment(digests)
+    if commitment["recordCount"] != member.record_count or (
+        commitment["root"]["sha256"] != member.record_root
+    ):
+        raise CliInputError("record declaration does not match the verified manifest commitment")
+    byte_range = (
+        declaration["ranges"][args.record_index] if declaration["kind"] == "byteRanges" else None
+    )
+    proof = create_record_inclusion_proof(
+        record_digests=digests,
+        record_index=args.record_index,
+        manifest_statement_digest=statement_digest,
+        manifest_subject_name=args.manifest_subject_name,
+        entry_name=args.entry_name,
+        entry_digest=member.digest,
+        byte_range=byte_range,
+        repository_root=REPOSITORY_ROOT,
+    )
+    _write_json(args.out, proof, force=args.force)
+    return 0
+
+
+def _cmd_record_verify(args: argparse.Namespace) -> int:
+    proof = _strict_object(args.proof)
+    validate_core(
+        "record-inclusion-proof",
+        proof,
+        repository_root=REPOSITORY_ROOT,
+        protocol_version="0.3",
+    )
+    member, report = _verified_record_entry(
+        args,
+        manifest_statement_digest=proof["manifestStatementDigest"]["sha256"],
+        manifest_subject_name=proof["manifestSubjectName"],
+        entry_name=proof["entryName"],
+    )
+    if proof["entryDigest"]["sha256"] != member.digest:
+        raise CliInputError("proof entry digest differs from the verified dataset member")
+    if proof["recordCount"] != member.record_count:
+        raise CliInputError("proof record count differs from the verified manifest commitment")
+    record_bytes: bytes | None = None
+    if args.record is not None:
+        record_bytes = args.record.read_bytes()
+    elif args.entry is not None:
+        entry_bytes = args.entry.read_bytes()
+        if sha256_bytes(entry_bytes) != member.digest:
+            raise CliInputError("entry bytes do not match the verified dataset member")
+        byte_range = proof.get("byteRange")
+        if not isinstance(byte_range, dict):
+            raise CliInputError("proof has no byte range for extracting a supplied entry")
+        start = byte_range["offset"]
+        end = start + byte_range["length"]
+        if end > len(entry_bytes):
+            raise CliInputError("proof byte range exceeds the supplied entry")
+        record_bytes = entry_bytes[start:end]
+    verify_record_inclusion_proof(
+        proof,
+        expected_root=member.record_root,
+        record_bytes=record_bytes,
+        repository_root=REPOSITORY_ROOT,
+    )
+    result = {
+        "bundleDecision": report["decision"],
+        "entryDigest": proof["entryDigest"],
+        "recordDigest": proof["recordDigest"],
+        "recordInclusion": "pass",
+    }
+    _emit(result if args.json else "verified", json_output=args.json)
     return 0
 
 
@@ -771,17 +1025,19 @@ def _cmd_policy_check(args: argparse.Namespace) -> int:
 
 
 def _cmd_vsa_assess(args: argparse.Namespace) -> int:
-    predicate_type = (
-        "https://usemakoto.dev/predicate/v0.2/origin"
-        if args.track == "origin"
-        else "https://usemakoto.dev/predicate/v0.2/transform"
-    )
     subjects: list[dict[str, Any]] = []
     input_descriptors: list[dict[str, Any]] = []
+    protocol_version: str | None = None
     for path in args.input_attestation:
         raw = path.read_bytes()
         attestation = load_attestation(path, repository_root=REPOSITORY_ROOT)
-        if attestation.statement["predicateType"] != predicate_type:
+        if protocol_version is None:
+            protocol_version = attestation.protocol_version
+        elif attestation.protocol_version != protocol_version:
+            raise CliInputError("assessment inputs mix Makoto protocol identifier families")
+        if attestation.statement["predicateType"] != predicate_type(
+            attestation.protocol_version, args.track
+        ):
             raise CliInputError("assessment input does not belong to the selected track")
         subjects.extend(attestation.statement["subject"])
         digest = sha256_bytes(raw)
@@ -944,6 +1200,7 @@ def _validate_claimed_profiles(
             profile,
             catalog_paths=catalogs,
             repository_root=REPOSITORY_ROOT,
+            protocol_version=statement["predicate"]["schemaVersion"],
         )
         if not result.valid:
             raise CliInputError("profile claim is false: " + "; ".join(result.errors))

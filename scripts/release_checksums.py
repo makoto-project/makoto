@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate or verify the exact Makoto v0.2 candidate or release checksum inventory."""
+"""Generate or verify the exact Makoto v0.3 candidate or release checksum inventory."""
 
 from __future__ import annotations
 
@@ -13,16 +13,18 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = ROOT / "release/v0.2/checksums.json"
+MANIFEST = ROOT / "release/v0.3/checksums.json"
 SCHEMA = ROOT / "release/checksums.schema.json"
 PREFIXES = (
     "demos/v0.2-end-to-end",
     "docs",
     "examples/go",
     "schemas/v0.2",
+    "schemas/v0.3",
     "scripts",
     "src/makoto",
     "testdata/v0.2",
+    "testdata/v0.3",
     "tests",
 )
 EXACT_PATHS = (
@@ -31,6 +33,7 @@ EXACT_PATHS = (
     "pyproject.toml",
     "release/checksums.schema.json",
     "spec/v0.2.md",
+    "spec/v0.3.md",
     "uv.lock",
 )
 FORBIDDEN_SEGMENTS = {
@@ -53,7 +56,7 @@ def parse_args() -> argparse.Namespace:
     action.add_argument("--write", action="store_true")
     parser.add_argument(
         "--tag",
-        choices=("v0.2.0",),
+        choices=("v0.3.0",),
         help="set only when writing the approved tagged release inventory",
     )
     args = parser.parse_args()
@@ -74,7 +77,7 @@ def included_paths(root: Path = ROOT) -> tuple[str, ...]:
     missing = [path for path in paths if not (root / path).is_file()]
     if missing:
         raise ChecksumError(f"required release files are absent: {sorted(missing)!r}")
-    if "release/v0.2/checksums.json" in paths:
+    if "release/v0.3/checksums.json" in paths:
         raise ChecksumError("checksum manifest cannot include itself")
     return tuple(sorted(paths, key=str.encode))
 
@@ -118,7 +121,7 @@ def strict_json(path: Path) -> Any:
 
 
 def verify_manifest(root: Path = ROOT) -> None:
-    value = strict_json(root / "release/v0.2/checksums.json")
+    value = strict_json(root / "release/v0.3/checksums.json")
     schema = strict_json(root / "release/checksums.schema.json")
     Draft202012Validator.check_schema(schema)
     errors = sorted(
@@ -135,7 +138,7 @@ def verify_manifest(root: Path = ROOT) -> None:
     expected = build_manifest(root, tag=value["tag"])
     if value != expected:
         raise ChecksumError("checksum inclusion set or file digests differ")
-    if (root / "release/v0.2/checksums.json").read_bytes() != canonical_bytes(value):
+    if (root / "release/v0.3/checksums.json").read_bytes() != canonical_bytes(value):
         raise ChecksumError("checksum manifest is not canonical JSON plus one LF")
 
 

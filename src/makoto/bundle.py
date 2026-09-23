@@ -18,18 +18,21 @@ from makoto.dataset import DatasetManifestError, DatasetManifestIndex, parse_dat
 from makoto.digest import digest_object, sha256_bytes
 from makoto.dsse import DsseError, SigningKey, canonical_b64decode
 from makoto.graph import GraphProblem, build_graph, reachable_from_heads
+from makoto.licence import LICENSE_PROFILE_ID
 from makoto.model import (
-    HANDOFF_PAYLOAD_TYPE,
     STATEMENT_PAYLOAD_TYPE,
     Artifact,
     Attestation,
     create_handoff,
 )
 from makoto.policy import AuthorizationResult, SignatureResult, TrustPolicy
+from makoto.protocol import (
+    dataset_manifest_media_type,
+    handoff_payload_type,
+    schema_id,
+)
 from makoto.report import Diagnostic, add_error, add_warning, finalize_report, new_report, set_check
 from makoto.schema import (
-    DATASET_MANIFEST_MEDIA_TYPE,
-    DATASET_MANIFEST_SCHEMA_ID,
     CoreValidationError,
     ProfileResolutionError,
     StrictJsonError,
@@ -215,12 +218,15 @@ def write_handoff_bundle(
     schema_catalog_paths: Sequence[Path] = (),
     external_profiles: Sequence[dict[str, Any]] = (),
     force: bool = False,
+    protocol_version: str = "0.2",
 ) -> dict[str, Any]:
     """Create one deterministic local bundle using identity-hashed artifact paths."""
 
     statement_map = {attestation.digest()["sha256"]: attestation for attestation in attestations}
     if len(statement_map) != len(attestations):
         raise BundleError("attestations contain duplicate statement payloads")
+    if any(attestation.protocol_version != protocol_version for attestation in attestations):
+        raise BundleError("attestations mix Makoto protocol identifier families")
     historical_materials: dict[tuple[str, str, str], Artifact] = {}
     for artifact, attestation in historical_artifacts or []:
         statement_digest = attestation.digest()["sha256"]
@@ -246,7 +252,9 @@ def write_handoff_bundle(
         if subject["digest"] != artifact.digest():
             raise BundleError("dataset manifest bytes do not match the selected subject")
         expected_profile = core_dataset_manifest_profile_reference(
-            artifact.name, repository_root=repository_root
+            artifact.name,
+            repository_root=repository_root,
+            protocol_version=protocol_version,
         )
         if expected_profile not in attestation.statement["predicate"].get("profiles", []):
             raise BundleError("dataset manifest subject lacks the exact mandatory core profile")
@@ -325,12 +333,14 @@ def write_handoff_bundle(
         required_profiles=required_profiles,
         recipient=recipient,
         nonce=nonce,
+        protocol_version=protocol_version,
     )
     exported_schema_resources = _select_exported_schema_resources(
         attestations=attestations,
         catalog_paths=schema_catalog_paths,
         external_profiles=external_profiles,
         repository_root=repository_root,
+        protocol_version=protocol_version,
     )
     if output.exists() and not force:
         raise BundleError(f"output already exists: {output}")
@@ -405,7 +415,7 @@ def write_handoff_bundle(
                 {**identity_record, "digest": artifact.digest(), "path": logical_path}
             )
         bundle_index = {
-            "version": "0.2",
+            "version": protocol_version,
             "manifest": manifest_path,
             "attestations": attestation_entries,
             "artifacts": artifact_entries,
@@ -428,13 +438,23 @@ def write_handoff_bundle(
                         "path": relative_resource_path,
                     }
                 )
-            exported_catalog = {"version": "0.2", "resources": catalog_entries}
-            validate_core("catalog", exported_catalog, repository_root=repository_root)
+            exported_catalog = {"version": protocol_version, "resources": catalog_entries}
+            validate_core(
+                "catalog",
+                exported_catalog,
+                repository_root=repository_root,
+                protocol_version=protocol_version,
+            )
             catalog_path = staged / "schemas" / "catalog.json"
             catalog_path.parent.mkdir(parents=True, exist_ok=True)
             catalog_path.write_bytes(canonical_json(exported_catalog) + b"\n")
             bundle_index["schemaCatalog"] = "schemas/catalog.json"
-        validate_core("bundle", bundle_index, repository_root=repository_root)
+        validate_core(
+            "bundle",
+            bundle_index,
+            repository_root=repository_root,
+            protocol_version=protocol_version,
+        )
         (staged / "bundle.json").write_bytes(canonical_json(bundle_index) + b"\n")
         if output.exists():
             shutil.rmtree(output)
@@ -455,6 +475,7 @@ def _select_exported_schema_resources(
     catalog_paths: Sequence[Path],
     external_profiles: Sequence[dict[str, Any]],
     repository_root: Path,
+    protocol_version: str,
 ) -> dict[tuple[str, str], bytes]:
     """Select the exact non-core closures needed by embedded signed profiles."""
 
@@ -462,9 +483,13 @@ def _select_exported_schema_resources(
     # do not opt into either closure embedding or explicit externalization.
     if not catalog_paths and not external_profiles:
         return {}
-    resources = load_catalog_resources(catalog_paths, repository_root=repository_root)
+    resources = load_catalog_resources(
+        catalog_paths,
+        repository_root=repository_root,
+        protocol_version=protocol_version,
+    )
     core_catalog_value = strict_json_loads(
-        (schema_directory(repository_root) / "catalog.json").read_bytes()
+        (schema_directory(repository_root, version=protocol_version) / "catalog.json").read_bytes()
     )
     assert isinstance(core_catalog_value, dict)
     core_resources = {
@@ -482,7 +507,12 @@ def _select_exported_schema_resources(
 
     external_identities: set[bytes] = set()
     for profile in external_profiles:
-        validate_core("profile-reference", profile, repository_root=repository_root)
+        validate_core(
+            "profile-reference",
+            profile,
+            repository_root=repository_root,
+            protocol_version=protocol_version,
+        )
         identity = canonical_json(profile)
         if identity in external_identities:
             raise BundleError("external profile identities must be unique")
@@ -493,6 +523,8 @@ def _select_exported_schema_resources(
     exported: dict[tuple[str, str], bytes] = {}
     for identity, profile in sorted(selected_profiles.items()):
         if identity in external_identities:
+            continue
+        if profile["id"] == LICENSE_PROFILE_ID:
             continue
         keys = [
             (profile["id"], profile["digest"]["sha256"]),
@@ -529,12 +561,16 @@ def verify_bundle(request: VerificationRequest) -> dict[str, Any]:
 
 def _verify_bundle(request: VerificationRequest) -> dict[str, Any]:
     policy = TrustPolicy.from_path(request.policy_path, repository_root=request.repository_root)
+    protocol_version = policy.protocol_version
     evaluation_time = request.evaluation_time or _now_timestamp()
-    core_catalog_bytes = (schema_directory(request.repository_root) / "catalog.json").read_bytes()
+    core_catalog_bytes = (
+        schema_directory(request.repository_root, version=protocol_version) / "catalog.json"
+    ).read_bytes()
     report = new_report(
         evaluation_time=evaluation_time,
         policy_digest=policy.digest(),
         core_catalog_digest=digest_object(sha256_bytes(core_catalog_bytes)),
+        protocol_version=protocol_version,
     )
     for check_id in (
         "load-safely",
@@ -622,7 +658,12 @@ def _verify_bundle(request: VerificationRequest) -> dict[str, Any]:
         bundle_value = strict_json_loads(bundle_bytes)
         if not isinstance(bundle_value, dict):
             raise CoreValidationError(())
-        validate_core("bundle", bundle_value, repository_root=request.repository_root)
+        validate_core(
+            "bundle",
+            bundle_value,
+            repository_root=request.repository_root,
+            protocol_version=protocol_version,
+        )
         bundle = cast(dict[str, Any], bundle_value)
     except CoreValidationError as error:
         add_error(
@@ -725,10 +766,11 @@ def _verify_bundle(request: VerificationRequest) -> dict[str, Any]:
             request.bundle_root,
             manifest_path,
             inventory,
-            expected_payload_type=HANDOFF_PAYLOAD_TYPE,
+            expected_payload_type=handoff_payload_type(protocol_version),
             payload_schema="handoff",
             repository_root=request.repository_root,
             timing=request.timing,
+            protocol_version=protocol_version,
         )
     except EnvelopeLoadFailure as error:
         add_error(
@@ -795,6 +837,7 @@ def _verify_bundle(request: VerificationRequest) -> dict[str, Any]:
                 payload_schema="statement",
                 repository_root=request.repository_root,
                 timing=request.timing,
+                protocol_version=protocol_version,
             )
         except EnvelopeLoadFailure as error:
             if error.step == 2:
@@ -1305,6 +1348,7 @@ def _load_envelope(
     payload_schema: str,
     repository_root: Path,
     timing: VerificationTiming | None = None,
+    protocol_version: str = "0.2",
 ) -> EnvelopeRecord:
     if timing is not None:
         timing.begin(2)
@@ -1391,7 +1435,12 @@ def _load_envelope(
     if timing is not None:
         timing.begin(4)
     try:
-        validate_core(payload_schema, payload_value, repository_root=repository_root)
+        validate_core(
+            payload_schema,
+            payload_value,
+            repository_root=repository_root,
+            protocol_version=protocol_version,
+        )
     except CoreValidationError as error:
         raise EnvelopeLoadFailure(
             "E_CORE_SCHEMA",
@@ -1613,6 +1662,10 @@ def _prevalidate_dataset_manifests(
 ) -> DatasetVerification:
     """Perform the bounded-by-current-runtime subset of normative Step 8 once."""
 
+    protocol_version = str(report["reportVersion"])
+    manifest_schema_id = schema_id(protocol_version, "dataset-manifest")
+    manifest_media_type = dataset_manifest_media_type(protocol_version)
+
     authorized = {
         digest
         for digest, result in authorization.items()
@@ -1659,7 +1712,7 @@ def _prevalidate_dataset_manifests(
     for statement_digest in sorted(authorized):
         statement = statements[statement_digest]
         for profile in statement["predicate"].get("profiles", []):
-            if profile["target"] == "artifact" and profile["id"] == DATASET_MANIFEST_SCHEMA_ID:
+            if profile["target"] == "artifact" and profile["id"] == manifest_schema_id:
                 add_candidate(
                     subjects.get((statement_digest, profile["subjectName"])), required=False
                 )
@@ -1681,7 +1734,7 @@ def _prevalidate_dataset_manifests(
                 required=True,
             )
         for artifact in manifest["artifacts"]:
-            if artifact.get("mediaType") == DATASET_MANIFEST_MEDIA_TYPE:
+            if artifact.get("mediaType") == manifest_media_type:
                 add_candidate(
                     subjects.get((artifact["head"]["sha256"], artifact["name"])),
                     required=False,
@@ -1730,7 +1783,9 @@ def _prevalidate_dataset_manifests(
             if profile["target"] == "artifact" and profile["subjectName"] == subject_name
         ]
         expected_profile = core_dataset_manifest_profile_reference(
-            subject_name, repository_root=repository_root
+            subject_name,
+            repository_root=repository_root,
+            protocol_version=protocol_version,
         )
         if expected_profile not in profiles:
             fail(
@@ -1825,6 +1880,7 @@ def _prevalidate_dataset_manifests(
                         profile,
                         catalog_paths=catalogs,
                         repository_root=repository_root,
+                        protocol_version=protocol_version,
                     )
                 except (ProfileResolutionError, ValueError):
                     resolution = "fail"
@@ -2187,6 +2243,7 @@ def _validate_metadata_profiles(
                     profile,
                     catalog_paths=catalogs,
                     repository_root=repository_root,
+                    protocol_version=str(report["reportVersion"]),
                 )
             except ProfileResolutionError as error:
                 resolution = "fail" if profile["critical"] else "indeterminate"
@@ -2552,6 +2609,7 @@ def _validate_artifact_profiles(
                         profile,
                         catalog_paths=catalogs,
                         repository_root=repository_root,
+                        protocol_version=str(report["reportVersion"]),
                     )
                 except (ProfileResolutionError, ValueError):
                     resolution = "fail"
@@ -2597,6 +2655,7 @@ def _validate_artifact_profiles(
                     profile,
                     catalog_paths=catalogs,
                     repository_root=repository_root,
+                    protocol_version=str(report["reportVersion"]),
                 )
             except (ProfileResolutionError, ValueError) as error:
                 code = (

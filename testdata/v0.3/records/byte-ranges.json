@@ -1,0 +1,8 @@
+{
+  "version": "0.3",
+  "kind": "byteRanges",
+  "ranges": [
+    { "offset": 0, "length": 6 },
+    { "offset": 6, "length": 5 }
+  ]
+}

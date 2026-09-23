@@ -74,9 +74,51 @@ STANDARD_RESOURCES = (
     ),
 )
 
+STANDARD_PROFILES = (
+    StandardResourceIdentity(
+        "https://usemakoto.dev/profile/v0.3/license-claim-v1.schema.json",
+        "v0.3/license-claim-v1.schema.json",
+        "4b10b1e2500edaa095c7771d74f95271acc31b8313a3954cbdbe6a4e4b055a80",
+        2115,
+    ),
+)
+
 
 def standard_registry_directory() -> Path:
     return Path(__file__).parent / "standard-schemas" / "draft-2020-12"
+
+
+def standard_profile_directory() -> Path:
+    return Path(__file__).parent / "standard-profiles"
+
+
+def verify_standard_profiles(directory: Path | None = None) -> dict[str, dict[str, Any]]:
+    """Verify the exact bytes and identifiers of verifier-owned standard profiles."""
+
+    root = directory or standard_profile_directory()
+    resources: dict[str, dict[str, Any]] = {}
+    for identity in STANDARD_PROFILES:
+        exact_bytes = (root / identity.path).read_bytes()
+        if len(exact_bytes) != identity.byte_length:
+            raise StandardRegistryError(f"standard profile length mismatch: {identity.identifier}")
+        if sha256_bytes(exact_bytes) != identity.digest:
+            raise StandardRegistryError(f"standard profile digest mismatch: {identity.identifier}")
+        try:
+            value = json.loads(exact_bytes)
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise StandardRegistryError(
+                f"standard profile is not JSON: {identity.identifier}"
+            ) from error
+        if not isinstance(value, dict) or value.get("$id") != identity.identifier:
+            raise StandardRegistryError(
+                f"standard profile identifier mismatch: {identity.identifier}"
+            )
+        resources[identity.identifier] = {
+            "bytes": exact_bytes,
+            "digest": identity.digest,
+            "schema": value,
+        }
+    return resources
 
 
 def verify_standard_registry(directory: Path | None = None) -> dict[str, dict[str, Any]]:

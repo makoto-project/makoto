@@ -1,10 +1,12 @@
-"""Deterministic construction of the Makoto v0.2 core schema catalog."""
+"""Deterministic construction of immutable Makoto core schema catalogs."""
 
 from __future__ import annotations
 
 import hashlib
 import json
 from pathlib import Path
+
+from makoto.protocol import require_protocol_version
 
 SCHEMA_NAMES = (
     "bundle",
@@ -21,16 +23,24 @@ SCHEMA_NAMES = (
     "verification-report",
 )
 
+SCHEMA_NAMES_BY_VERSION = {
+    "0.2": SCHEMA_NAMES,
+    "0.3": SCHEMA_NAMES + ("record-declaration", "record-inclusion-proof"),
+}
 
-def schema_directory(repository_root: Path | None = None) -> Path:
+
+def schema_directory(repository_root: Path | None = None, *, version: str = "0.2") -> Path:
+    require_protocol_version(version)
     root = repository_root or Path(__file__).resolve().parents[2]
-    return root / "schemas" / "v0.2"
+    return root / "schemas" / f"v{version}"
 
 
-def build_catalog(repository_root: Path | None = None) -> dict[str, object]:
-    directory = schema_directory(repository_root)
+def build_catalog(
+    repository_root: Path | None = None, *, version: str = "0.2"
+) -> dict[str, object]:
+    directory = schema_directory(repository_root, version=version)
     resources: list[dict[str, object]] = []
-    for name in SCHEMA_NAMES:
+    for name in SCHEMA_NAMES_BY_VERSION[version]:
         path = directory / f"{name}.schema.json"
         raw = path.read_bytes()
         parsed = json.loads(raw)
@@ -42,7 +52,7 @@ def build_catalog(repository_root: Path | None = None) -> dict[str, object]:
             }
         )
     resources.sort(key=lambda resource: str(resource["id"]).encode())
-    return {"version": "0.2", "resources": resources}
+    return {"version": version, "resources": resources}
 
 
 def serialize(value: object) -> bytes:
@@ -52,7 +62,7 @@ def serialize(value: object) -> bytes:
     )
 
 
-def write_catalog(repository_root: Path | None = None) -> Path:
-    output = schema_directory(repository_root) / "catalog.json"
-    output.write_bytes(serialize(build_catalog(repository_root)))
+def write_catalog(repository_root: Path | None = None, *, version: str = "0.2") -> Path:
+    output = schema_directory(repository_root, version=version) / "catalog.json"
+    output.write_bytes(serialize(build_catalog(repository_root, version=version)))
     return output

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from makoto import __version__
 from makoto.canonical import canonical_json
 
 CHECK_IDS = (
@@ -74,9 +75,10 @@ def new_report(
     evaluation_time: str,
     policy_digest: dict[str, str],
     core_catalog_digest: dict[str, str],
+    protocol_version: str = "0.2",
 ) -> dict[str, Any]:
     return {
-        "reportVersion": "0.2",
+        "reportVersion": protocol_version,
         "decision": "deny",
         "reportTruncated": False,
         "primaryError": None,
@@ -125,7 +127,7 @@ def new_report(
         ],
         "warnings": [],
         "errors": [],
-        "tool": {"name": "makoto", "version": "0.2.0a0"},
+        "tool": {"name": "makoto", "version": __version__},
     }
 
 

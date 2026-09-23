@@ -18,11 +18,11 @@ def test_release_checksum_inclusion_set_is_sorted_and_excludes_itself() -> None:
     paths = release_checksums.included_paths()
 
     assert paths == tuple(sorted(paths, key=str.encode))
-    assert "release/v0.2/checksums.json" not in paths
+    assert "release/v0.3/checksums.json" not in paths
     assert "release/checksums.schema.json" in paths
     assert "examples/go/go.mod" in paths
 
 
 def test_candidate_and_release_checksum_status_are_explicit() -> None:
     assert release_checksums.build_manifest()["tag"] is None
-    assert release_checksums.build_manifest(tag="v0.2.0")["tag"] == "v0.2.0"
+    assert release_checksums.build_manifest(tag="v0.3.0")["tag"] == "v0.3.0"

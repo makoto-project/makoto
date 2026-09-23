@@ -6,7 +6,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from makoto.model import ORIGIN_PREDICATE_TYPE, TRANSFORM_PREDICATE_TYPE
+from makoto.protocol import predicate_type as core_predicate_type
+from makoto.protocol import protocol_version_from_statement
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,7 @@ def build_graph(
     problems: list[GraphProblem] = []
     consumed_subjects: set[tuple[str, str, str]] = set()
     event_ids: dict[str, str] = {}
+    graph_version: str | None = None
 
     for digest in sorted(statements):
         statement = statements[digest]
@@ -58,16 +60,31 @@ def build_graph(
                 )
             else:
                 event_ids[event_id] = digest
-        predicate_type = statement["predicateType"]
-        if predicate_type == ORIGIN_PREDICATE_TYPE:
-            predecessors[digest] = ()
-            continue
-        if predicate_type != TRANSFORM_PREDICATE_TYPE:
+        statement_predicate_type = statement["predicateType"]
+        protocol_version = protocol_version_from_statement(statement)
+        if graph_version is None:
+            graph_version = protocol_version
+        elif protocol_version != graph_version:
             problems.append(
                 GraphProblem(
                     "E_PREDICATE_SEMANTICS_UNSUPPORTED",
                     digest,
-                    f"unsupported predicate type {predicate_type!r}",
+                    "graph mixes Makoto protocol identifier families",
+                )
+            )
+            predecessors[digest] = ()
+            continue
+        origin_type = core_predicate_type(protocol_version, "origin")
+        transform_type = core_predicate_type(protocol_version, "transform")
+        if statement_predicate_type == origin_type:
+            predecessors[digest] = ()
+            continue
+        if statement_predicate_type != transform_type:
+            problems.append(
+                GraphProblem(
+                    "E_PREDICATE_SEMANTICS_UNSUPPORTED",
+                    digest,
+                    f"unsupported predicate type {statement_predicate_type!r}",
                 )
             )
             predecessors[digest] = ()
@@ -160,7 +177,9 @@ def build_graph(
 
     roots = tuple(sorted(digest for digest, values in predecessors.items() if not values))
     for digest in roots:
-        if statements[digest]["predicateType"] != ORIGIN_PREDICATE_TYPE:
+        statement = statements[digest]
+        version = protocol_version_from_statement(statement)
+        if statement["predicateType"] != core_predicate_type(version, "origin"):
             problems.append(GraphProblem("E_ROOT_INVALID", digest, "graph root is not an origin"))
     terminal_statements = {
         digest

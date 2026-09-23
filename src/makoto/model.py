@@ -1,4 +1,4 @@
-"""Typed authoring primitives for immutable Makoto v0.2 evidence."""
+"""Typed authoring primitives for immutable Makoto evidence."""
 
 from __future__ import annotations
 
@@ -10,6 +10,12 @@ from typing import Any, BinaryIO, cast
 from makoto.canonical import canonical_json
 from makoto.digest import digest_object, sha256_bytes, sha256_stream
 from makoto.dsse import SigningKey, sign_envelope
+from makoto.protocol import (
+    handoff_payload_type,
+    predicate_type,
+    protocol_version_from_statement,
+    require_protocol_version,
+)
 from makoto.schema import validate_core
 
 STATEMENT_PAYLOAD_TYPE = "application/vnd.in-toto+json"
@@ -63,6 +69,10 @@ class Attestation:
     def digest(self) -> dict[str, str]:
         return digest_object(sha256_bytes(self.payload))
 
+    @property
+    def protocol_version(self) -> str:
+        return protocol_version_from_statement(self.statement)
+
     def subject(self, name: str) -> dict[str, Any]:
         subjects = cast(list[dict[str, Any]], self.statement["subject"])
         matches = [subject for subject in subjects if subject["name"] == name]
@@ -111,8 +121,14 @@ def _sign_statement(
     statement: dict[str, Any],
     key: SigningKey | Sequence[SigningKey],
     repository_root: Path,
+    protocol_version: str,
 ) -> Attestation:
-    validate_core("statement", statement, repository_root=repository_root)
+    validate_core(
+        "statement",
+        statement,
+        repository_root=repository_root,
+        protocol_version=protocol_version,
+    )
     payload = canonical_json(statement)
     envelope = sign_envelope(STATEMENT_PAYLOAD_TYPE, payload, key)
     validate_core("envelope", envelope, repository_root=repository_root)
@@ -134,7 +150,9 @@ def create_origin(
     source_version: str | None = None,
     profiles: list[dict[str, object]] | None = None,
     extensions: dict[str, object] | None = None,
+    protocol_version: str = "0.2",
 ) -> Attestation:
+    require_protocol_version(protocol_version)
     if not artifacts:
         raise ValueError("an origin requires at least one subject artifact")
     source: dict[str, object] = {"kind": source_kind}
@@ -147,7 +165,7 @@ def create_origin(
     }
     source.update({name: value for name, value in optional_source.items() if value is not None})
     predicate: dict[str, object] = {
-        "schemaVersion": "0.2",
+        "schemaVersion": protocol_version,
         "event": {"id": event_id, "occurredAt": occurred_at},
         "source": source,
     }
@@ -158,10 +176,10 @@ def create_origin(
     statement: dict[str, Any] = {
         "_type": "https://in-toto.io/Statement/v1",
         "subject": [_subject(artifact) for artifact in artifacts],
-        "predicateType": ORIGIN_PREDICATE_TYPE,
+        "predicateType": predicate_type(protocol_version, "origin"),
         "predicate": predicate,
     }
-    return _sign_statement(statement, signing_key, repository_root)
+    return _sign_statement(statement, signing_key, repository_root, protocol_version)
 
 
 def create_transform(
@@ -178,11 +196,15 @@ def create_transform(
     parameters_digest: dict[str, str] | None = None,
     profiles: list[dict[str, object]] | None = None,
     extensions: dict[str, object] | None = None,
+    protocol_version: str = "0.2",
 ) -> Attestation:
+    require_protocol_version(protocol_version)
     if not artifacts:
         raise ValueError("a transformation requires at least one subject artifact")
     if not inputs:
         raise ValueError("a transformation requires at least one input")
+    if any(item.predecessor.protocol_version != protocol_version for item in inputs):
+        raise ValueError("transformation inputs mix Makoto protocol identifier families")
     operation: dict[str, object] = {"type": operation_type}
     if operation_name is not None:
         operation["name"] = operation_name
@@ -191,7 +213,7 @@ def create_transform(
     if parameters_digest is not None:
         operation["parametersDigest"] = parameters_digest
     predicate: dict[str, object] = {
-        "schemaVersion": "0.2",
+        "schemaVersion": protocol_version,
         "event": {"id": event_id, "occurredAt": occurred_at},
         "operation": operation,
         "inputs": [input_artifact.as_dict() for input_artifact in inputs],
@@ -203,10 +225,10 @@ def create_transform(
     statement: dict[str, Any] = {
         "_type": "https://in-toto.io/Statement/v1",
         "subject": [_subject(artifact) for artifact in artifacts],
-        "predicateType": TRANSFORM_PREDICATE_TYPE,
+        "predicateType": predicate_type(protocol_version, "transform"),
         "predicate": predicate,
     }
-    return _sign_statement(statement, signing_key, repository_root)
+    return _sign_statement(statement, signing_key, repository_root, protocol_version)
 
 
 def create_handoff(
@@ -221,9 +243,13 @@ def create_handoff(
     required_profiles: list[dict[str, object]] | None = None,
     recipient: str | None = None,
     nonce: str | None = None,
+    protocol_version: str = "0.2",
 ) -> Handoff:
+    require_protocol_version(protocol_version)
     if not statements or not roots or not final_artifacts:
         raise ValueError("handoff requires statements, roots, and final artifacts")
+    if any(statement.protocol_version != protocol_version for statement in statements):
+        raise ValueError("handoff statements mix Makoto protocol identifier families")
     statement_digests = sorted(
         (statement.digest() for statement in statements), key=lambda item: item["sha256"]
     )
@@ -252,7 +278,7 @@ def create_handoff(
         {str(item["head"]["sha256"]) for item in artifacts},
     )
     manifest: dict[str, Any] = {
-        "version": "0.2",
+        "version": protocol_version,
         "bundleId": bundle_id,
         "issuedAt": issued_at,
         "roots": root_digests,
@@ -265,8 +291,13 @@ def create_handoff(
         manifest["recipient"] = recipient
     if nonce is not None:
         manifest["nonce"] = nonce
-    validate_core("handoff", manifest, repository_root=repository_root)
+    validate_core(
+        "handoff",
+        manifest,
+        repository_root=repository_root,
+        protocol_version=protocol_version,
+    )
     payload = canonical_json(manifest)
-    envelope = sign_envelope(HANDOFF_PAYLOAD_TYPE, payload, signing_key)
+    envelope = sign_envelope(handoff_payload_type(protocol_version), payload, signing_key)
     validate_core("envelope", envelope, repository_root=repository_root)
     return Handoff(manifest=manifest, payload=payload, envelope=envelope)

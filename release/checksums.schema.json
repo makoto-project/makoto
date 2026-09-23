@@ -6,7 +6,7 @@
   "required": ["version", "tag", "files"],
   "properties": {
     "version": { "const": "1" },
-    "tag": { "type": ["string", "null"], "enum": ["v0.2.0", null] },
+    "tag": { "type": ["string", "null"], "enum": ["v0.2.0", "v0.3.0", null] },
     "files": {
       "type": "array",
       "minItems": 1,

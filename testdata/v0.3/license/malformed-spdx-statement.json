@@ -1,0 +1,33 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "part-00000.parquet",
+      "digest": {
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  ],
+  "predicateType": "https://usemakoto.dev/predicate/v0.3/origin",
+  "predicate": {
+    "schemaVersion": "0.3",
+    "event": {
+      "id": "urn:uuid:11111111-1111-4111-8111-111111111103",
+      "occurredAt": "2026-09-23T16:00:00Z"
+    },
+    "source": {
+      "kind": "urn:makoto:test:source"
+    },
+    "extensions": {
+      "https://usemakoto.dev/claim/v0.3/license": {
+        "claims": [
+          {
+            "subjectName": "part-00000.parquet",
+            "spdxExpression": "MIT AND",
+            "evidenceUrl": "https://example.test/licence-evidence.json"
+          }
+        ]
+      }
+    }
+  }
+}
