@@ -60,9 +60,16 @@ def parse_args() -> argparse.Namespace:
         choices=("v0.3.0",),
         help="set only when writing the approved tagged release inventory",
     )
+    parser.add_argument(
+        "--exact",
+        action="store_true",
+        help="with --check, require even a candidate inventory to match the working tree",
+    )
     args = parser.parse_args()
     if args.check and args.tag is not None:
         parser.error("--tag can only be combined with --write")
+    if args.exact and not args.check:
+        parser.error("--exact can only be combined with --check")
     return args
 
 
@@ -121,10 +128,7 @@ def strict_json(path: Path) -> Any:
     return json.loads(raw, object_pairs_hook=pairs)
 
 
-def verify_manifest(root: Path = ROOT) -> None:
-    value = strict_json(root / "release/v0.3/checksums.json")
-    schema = strict_json(root / "release/checksums.schema.json")
-    Draft202012Validator.check_schema(schema)
+def check_shape(value: Any, schema: Any) -> None:
     errors = sorted(
         Draft202012Validator(schema).iter_errors(value),
         key=lambda error: list(error.absolute_path),
@@ -136,11 +140,28 @@ def verify_manifest(root: Path = ROOT) -> None:
         raise ChecksumError("checksum paths are not sorted and unique")
     if any(path != unicodedata.normalize("NFC", path) for path in paths):
         raise ChecksumError("checksum paths must be NFC")
-    expected = build_manifest(root, tag=value["tag"])
-    if value != expected:
-        raise ChecksumError("checksum inclusion set or file digests differ")
+
+
+def verify_manifest(root: Path = ROOT, *, exact: bool = False) -> bool:
+    """Verify the checked-in inventory and report whether it matches the working tree.
+
+    A tagged inventory, or any inventory when ``exact`` is set, must match byte for byte.
+    A null-tag candidate is not release evidence (spec/v0.3.md), so the routine gate only
+    requires it to be well formed and regenerable: dependency updates may change included
+    bytes such as uv.lock without rewriting it, and release-check.sh enforces exactness.
+    """
+    value = strict_json(root / "release/v0.3/checksums.json")
+    schema = strict_json(root / "release/checksums.schema.json")
+    Draft202012Validator.check_schema(schema)
+    check_shape(value, schema)
     if (root / "release/v0.3/checksums.json").read_bytes() != canonical_bytes(value):
         raise ChecksumError("checksum manifest is not canonical JSON plus one LF")
+    expected = build_manifest(root, tag=value["tag"])
+    check_shape(expected, schema)
+    current = value == expected
+    if not current and (exact or value["tag"] is not None):
+        raise ChecksumError("checksum inclusion set or file digests differ")
+    return current
 
 
 def main() -> int:
@@ -150,8 +171,10 @@ def main() -> int:
         MANIFEST.write_bytes(canonical_bytes(build_manifest(tag=args.tag)))
         print(f"wrote {MANIFEST.relative_to(ROOT)}")
     else:
-        verify_manifest()
-        print("release checksums valid")
+        if verify_manifest(exact=args.exact):
+            print("release checksums valid")
+        else:
+            print("release checksums valid; candidate digests trail the tree until release")
     return 0
 
 

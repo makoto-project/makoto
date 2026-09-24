@@ -5,6 +5,7 @@ repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repository_root}"
 
 ./scripts/check.sh
+uv run scripts/release_checksums.py --check --exact
 
 benchmark_result="${repository_root}/.codex-work/release-benchmark.json"
 mkdir -p "$(dirname "${benchmark_result}")"
