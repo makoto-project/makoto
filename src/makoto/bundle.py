@@ -155,6 +155,7 @@ class VerificationRequest:
     artifact_materials: tuple[ArtifactMaterialSource, ...] = ()
     dataset_entry_bindings: tuple[DatasetEntrySource, ...] = ()
     consumer_metadata_paths: tuple[Path, ...] = ()
+    sigstore_trust_root_path: Path | None = None
     temp_parent: Path | None = None
     snapshot_root: Path | None = None
     timing: VerificationTiming | None = None
@@ -560,7 +561,11 @@ def verify_bundle(request: VerificationRequest) -> dict[str, Any]:
 
 
 def _verify_bundle(request: VerificationRequest) -> dict[str, Any]:
-    policy = TrustPolicy.from_path(request.policy_path, repository_root=request.repository_root)
+    policy = TrustPolicy.from_path(
+        request.policy_path,
+        repository_root=request.repository_root,
+        sigstore_trust_root_path=request.sigstore_trust_root_path,
+    )
     protocol_version = policy.protocol_version
     evaluation_time = request.evaluation_time or _now_timestamp()
     core_catalog_bytes = (
@@ -1512,6 +1517,8 @@ def _validate_consumer_configuration(request: VerificationRequest) -> None:
         *request.schema_catalogs,
         *request.consumer_metadata_paths,
     ]
+    if request.sigstore_trust_root_path is not None:
+        metadata_paths.append(request.sigstore_trust_root_path)
     consumer_paths = [source.path for source in request.artifact_materials]
     consumer_paths.extend(source.path for source in request.dataset_entry_bindings)
     consumer_paths.extend(metadata_paths)
@@ -1577,6 +1584,7 @@ def _snapshot_consumer_materials(
         request.policy_path,
         *request.schema_catalogs,
         *request.consumer_metadata_paths,
+        *((request.sigstore_trust_root_path,) if request.sigstore_trust_root_path else ()),
     ):
         descriptor, _metadata = open_consumer(metadata_path)
         os.close(descriptor)

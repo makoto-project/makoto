@@ -107,6 +107,34 @@ verified evidence, not part of that path preimage.
 
 `schemas/v0.3/catalog.json` pins the exact bytes of all fourteen v0.3 schema resources. A verifier dispatches one protocol family and rejects mixed v0.2/v0.3 identifiers. The existing demo remains a v0.2 compatibility proof.
 
+## Keyless signing
+
+v0.3 can authorize Sigstore keyless identities and pinned Ed25519 keys in the
+same receiver policy. Keyless verification checks the embedded Fulcio
+certificate, exact OIDC identity, Rekor inclusion evidence, and DSSE bytes
+offline against a separately supplied, digest-pinned trusted root. Producer
+bundle contents never supply trust anchors.
+
+Signing uses an ambient OIDC token and may contact Sigstore services:
+
+```bash
+makoto envelope keyless-sign \
+--envelope lineage.dsse.json \
+--identity identity.json \
+--out lineage.keyless.dsse.json
+```
+
+Verification remains offline:
+
+```bash
+makoto verify bundle ./handoff \
+--policy policy.json \
+--sigstore-trust-root trusted-root.json
+```
+
+The [GitHub Actions example](examples/github-actions/README.md) shows a
+pull-request workflow with `id-token: write` and read-only repository contents.
+
 ## Licence claims
 
 v0.3 includes a verifier-owned, digest-pinned standard profile for one SPDX expression and evidence URL per statement subject. Generate its exact profile reference with `makoto profile standard-license`. A receiver can require it through a rule's `profileConstraints`.
@@ -173,8 +201,8 @@ answer can be traced and repaired.
 
 ## What verification means
 
-Makoto establishes that exact bytes match signed claims, that configured keys produced valid
-signatures, that receiver policy authorizes those keys for those claim types, and that the
+Makoto establishes that exact bytes match signed claims, that configured signers produced valid
+signatures, that receiver policy authorizes those signers for those claim types, and that the
 complete graph matches an authorized handoff plus independent expectations. It does not prove
 that a source told the truth, that a claimed transformation actually executed, that the data is
 safe or high quality, or that signed metadata is confidential.

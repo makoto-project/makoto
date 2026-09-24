@@ -70,6 +70,7 @@ from makoto.schema import (
     validate_with_catalog,
     validate_with_schema_bytes,
 )
+from makoto.sigstore import SigstoreError, keyless_cosign_envelope
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
@@ -175,6 +176,13 @@ def _parser() -> argparse.ArgumentParser:
     envelope_cosign.add_argument("--out", type=Path, required=True)
     envelope_cosign.add_argument("--force", action="store_true")
     envelope_cosign.set_defaults(handler=_cmd_envelope_cosign)
+    envelope_keyless = envelope_commands.add_parser("keyless-sign")
+    envelope_keyless.add_argument("--envelope", type=Path, required=True)
+    envelope_keyless.add_argument("--identity", type=Path, required=True)
+    envelope_keyless.add_argument("--out", type=Path, required=True)
+    envelope_keyless.add_argument("--staging", action="store_true")
+    envelope_keyless.add_argument("--force", action="store_true")
+    envelope_keyless.set_defaults(handler=_cmd_envelope_keyless_sign)
 
     attest = commands.add_parser("attest")
     attest_commands = attest.add_subparsers(dest="attest_command", required=True)
@@ -220,6 +228,7 @@ def _parser() -> argparse.ArgumentParser:
     verify_parser = verify_commands.add_parser("bundle")
     verify_parser.add_argument("bundle_directory", type=Path)
     verify_parser.add_argument("--policy", type=Path, required=True)
+    verify_parser.add_argument("--sigstore-trust-root", type=Path)
     verify_parser.add_argument("--schema-catalog", type=Path, action="append", default=[])
     verify_parser.add_argument("--expected-manifest", type=_digest_flag)
     verify_parser.add_argument("--expected-head", type=_digest_flag, action="append", default=[])
@@ -410,6 +419,25 @@ def _cmd_envelope_cosign(args: argparse.Namespace) -> int:
     envelope["signatures"].sort(key=lambda item: item["keyid"].encode())
     validate_core("envelope", envelope, repository_root=REPOSITORY_ROOT)
     _write_json(args.out, envelope, force=args.force)
+    return 0
+
+
+def _cmd_envelope_keyless_sign(args: argparse.Namespace) -> int:
+    if args.envelope.resolve() == args.out.resolve():
+        raise CliInputError("keyless-sign input and output must be different files")
+    envelope = _strict_object(args.envelope)
+    validate_core("envelope", envelope, repository_root=REPOSITORY_ROOT)
+    identity = _strict_object(args.identity)
+    try:
+        result = keyless_cosign_envelope(
+            envelope,
+            identity=identity,
+            staging=args.staging,
+        )
+    except SigstoreError as error:
+        raise CliInputError(str(error)) from error
+    validate_core("envelope", result, repository_root=REPOSITORY_ROOT, protocol_version="0.3")
+    _write_json(args.out, result, force=args.force)
     return 0
 
 
@@ -655,6 +683,7 @@ def _cmd_verify_bundle(args: argparse.Namespace) -> int:
             *args.artifact_material,
             *args.dataset_entry_binding,
         ),
+        sigstore_trust_root_path=args.sigstore_trust_root,
         temp_parent=args.temp_parent,
         timing=timing,
     )

@@ -1,0 +1,68 @@
+name: Sign pull-request lineage
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  sign-lineage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out reviewed workflow and Makoto code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: tooling
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Build and sign the lineage statement
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REPOSITORY: ${{ github.repository }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          GIT_REF: ${{ github.ref }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$HEAD_SHA" > pr-head.txt
+          uv run --project tooling makoto key generate \
+            --private-out ephemeral.pem \
+            --public-out ephemeral.pub.pem
+          uv run --project tooling makoto attest origin \
+            --protocol-version 0.3 \
+            --subject pr-head=pr-head.txt \
+            --source-kind urn:makoto:source:github-pull-request \
+            --source-uri "$PR_URL" \
+            --key ephemeral.pem \
+            --out lineage.dsse.json
+          jq -n \
+            --arg issuer 'https://token.actions.githubusercontent.com' \
+            --arg subject "https://github.com/$WORKFLOW_REF" \
+            --arg repository "$REPOSITORY" \
+            --arg workflowRef "$GIT_REF" \
+            --arg event "$EVENT_NAME" \
+            '{type:"sigstore",issuer:$issuer,subject:$subject,
+              githubActions:{repository:$repository,
+                workflowRef:$workflowRef,event:$event}}' \
+            > identity.json
+          uv run --project tooling makoto envelope keyless-sign \
+            --envelope lineage.dsse.json \
+            --identity identity.json \
+            --out lineage.keyless.dsse.json
+
+      - name: Upload signed lineage
+        uses: actions/upload-artifact@v4
+        with:
+          name: makoto-pr-lineage
+          path: |
+            lineage.keyless.dsse.json
+            identity.json
+          if-no-files-found: error

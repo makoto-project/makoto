@@ -11,6 +11,12 @@
       "propertyNames": { "type": "string", "minLength": 71, "maxLength": 71 },
       "additionalProperties": { "$ref": "#/$defs/key" }
     },
+    "keylessIdentities": {
+      "type": "object",
+      "propertyNames": { "type": "string", "minLength": 71, "maxLength": 71 },
+      "additionalProperties": { "$ref": "#/$defs/keylessIdentity" }
+    },
+    "sigstoreTrustRoot": { "$ref": "#/$defs/resourceDescriptor" },
     "rules": {
       "type": "array",
       "maxItems": 1024,
@@ -62,6 +68,26 @@
       },
       "additionalProperties": false
     },
+    "keylessIdentity": {
+      "type": "object",
+      "required": ["type", "issuer", "subject"],
+      "properties": {
+        "type": { "const": "sigstore" },
+        "issuer": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "subject": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "githubActions": {
+          "type": "object",
+          "required": ["repository", "workflowRef", "event"],
+          "properties": {
+            "repository": { "type": "string", "minLength": 3, "maxLength": 4096 },
+            "workflowRef": { "type": "string", "minLength": 3, "maxLength": 4096 },
+            "event": { "type": "string", "minLength": 1, "maxLength": 255 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "profileConstraint": {
       "type": "object",
       "required": ["id", "target"],
@@ -84,11 +110,12 @@
     },
     "rule": {
       "type": "object",
-      "required": ["id", "predicateTypes", "authorizedKeyIds", "minimumSignatures"],
+      "required": ["id", "predicateTypes", "minimumSignatures"],
       "properties": {
         "id": { "type": "string", "minLength": 1, "maxLength": 4096 },
         "predicateTypes": { "$ref": "#/$defs/uris" },
         "authorizedKeyIds": { "$ref": "#/$defs/keyIds" },
+        "authorizedIdentityIds": { "$ref": "#/$defs/keyIds" },
         "minimumSignatures": { "type": "integer", "minimum": 1 },
         "sourceKinds": { "$ref": "#/$defs/uris" },
         "sourceUris": { "$ref": "#/$defs/uris" },
@@ -99,12 +126,15 @@
           "items": { "$ref": "#/$defs/profileConstraint" }
         }
       },
+      "anyOf": [
+        { "required": ["authorizedKeyIds"] },
+        { "required": ["authorizedIdentityIds"] }
+      ],
       "additionalProperties": false
     },
     "handoffRule": {
       "type": "object",
       "required": [
-        "authorizedKeyIds",
         "minimumSignatures",
         "requireExpectedManifest",
         "requireExpectedHead",
@@ -115,6 +145,7 @@
       ],
       "properties": {
         "authorizedKeyIds": { "$ref": "#/$defs/keyIds" },
+        "authorizedIdentityIds": { "$ref": "#/$defs/keyIds" },
         "minimumSignatures": { "type": "integer", "minimum": 1 },
         "requireExpectedManifest": { "type": "boolean" },
         "requireExpectedHead": { "type": "boolean" },
@@ -125,13 +156,23 @@
         "maxAgeSeconds": { "type": "integer", "minimum": 0, "maximum": 315576000 },
         "maxFutureSkewSeconds": { "type": "integer", "minimum": 0, "maximum": 315576000 }
       },
-      "oneOf": [
-        { "required": ["maxAgeSeconds", "maxFutureSkewSeconds"] },
+      "allOf": [
         {
-          "properties": {
-            "maxAgeSeconds": false,
-            "maxFutureSkewSeconds": false
-          }
+          "anyOf": [
+            { "required": ["authorizedKeyIds"] },
+            { "required": ["authorizedIdentityIds"] }
+          ]
+        },
+        {
+          "oneOf": [
+            { "required": ["maxAgeSeconds", "maxFutureSkewSeconds"] },
+            {
+              "properties": {
+                "maxAgeSeconds": false,
+                "maxFutureSkewSeconds": false
+              }
+            }
+          ]
         }
       ],
       "additionalProperties": false

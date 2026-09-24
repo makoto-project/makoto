@@ -8,6 +8,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
+from sigstore.models import TrustedRoot
+
 from makoto.digest import digest_object, sha256_bytes
 from makoto.dsse import (
     DsseError,
@@ -17,6 +19,7 @@ from makoto.dsse import (
     strict_verify_ed25519,
 )
 from makoto.schema import strict_json_loads, validate_core
+from makoto.sigstore import SigstoreError, load_trusted_root, verify_keyless_signature
 
 
 class PolicyError(ValueError):
@@ -46,13 +49,21 @@ class TrustPolicy:
     value: dict[str, Any]
     exact_bytes: bytes
     public_keys: Mapping[str, bytes]
+    keyless_identities: Mapping[str, Mapping[str, Any]]
+    sigstore_trusted_root: TrustedRoot | None
 
     @property
     def protocol_version(self) -> str:
         return cast(str, self.value["version"])
 
     @classmethod
-    def from_bytes(cls, data: bytes, *, repository_root: Path) -> TrustPolicy:
+    def from_bytes(
+        cls,
+        data: bytes,
+        *,
+        repository_root: Path,
+        sigstore_trust_root_path: Path | None = None,
+    ) -> TrustPolicy:
         parsed = strict_json_loads(data)
         if not isinstance(parsed, dict):
             raise PolicyError("trust policy must be a JSON object")
@@ -64,11 +75,40 @@ class TrustPolicy:
                 public_keys[keyid] = canonical_b64decode(key["publicKey"], expected_length=44)
             except DsseError as error:
                 raise PolicyError(f"invalid configured key {keyid!r}") from error
-        return cls(value=policy, exact_bytes=data, public_keys=public_keys)
+        identities = cast(dict[str, Mapping[str, Any]], policy.get("keylessIdentities", {}))
+        trusted_root = None
+        root_descriptor = policy.get("sigstoreTrustRoot")
+        if sigstore_trust_root_path is not None:
+            if root_descriptor is None:
+                raise PolicyError("policy does not pin a Sigstore trust root")
+            try:
+                trusted_root = load_trusted_root(
+                    sigstore_trust_root_path,
+                    expected_sha256=root_descriptor["digest"]["sha256"],
+                )
+            except SigstoreError as error:
+                raise PolicyError(str(error)) from error
+        return cls(
+            value=policy,
+            exact_bytes=data,
+            public_keys=public_keys,
+            keyless_identities=identities,
+            sigstore_trusted_root=trusted_root,
+        )
 
     @classmethod
-    def from_path(cls, path: Path, *, repository_root: Path) -> TrustPolicy:
-        return cls.from_bytes(path.read_bytes(), repository_root=repository_root)
+    def from_path(
+        cls,
+        path: Path,
+        *,
+        repository_root: Path,
+        sigstore_trust_root_path: Path | None = None,
+    ) -> TrustPolicy:
+        return cls.from_bytes(
+            path.read_bytes(),
+            repository_root=repository_root,
+            sigstore_trust_root_path=sigstore_trust_root_path,
+        )
 
     def digest(self) -> dict[str, str]:
         return digest_object(sha256_bytes(self.exact_bytes))
@@ -80,6 +120,11 @@ class TrustPolicy:
         if valid_from is not None and evaluation_time < _parse_timestamp(valid_from):
             return False
         return not (valid_until is not None and evaluation_time >= _parse_timestamp(valid_until))
+
+    def _signer_valid_at(self, signer_id: str, evaluation_time: datetime) -> bool:
+        if signer_id in self.keyless_identities:
+            return True
+        return self._key_valid_at(signer_id, evaluation_time)
 
     def verify_signatures(
         self,
@@ -95,6 +140,26 @@ class TrustPolicy:
         results: list[SignatureResult] = []
         for signature in envelope["signatures"]:
             keyid = signature["keyid"]
+            if "sigstoreBundle" in signature:
+                identity = self.keyless_identities.get(keyid)
+                if identity is None:
+                    results.append(SignatureResult(keyid, False, "not_checked"))
+                    continue
+                if self.sigstore_trusted_root is None:
+                    results.append(SignatureResult(keyid, True, "fail"))
+                    continue
+                try:
+                    verify_keyless_signature(
+                        envelope,
+                        signature,
+                        identity=identity,
+                        trusted_root=self.sigstore_trusted_root,
+                    )
+                except SigstoreError:
+                    results.append(SignatureResult(keyid, True, "fail"))
+                else:
+                    results.append(SignatureResult(keyid, True, "pass"))
+                continue
             if keyid not in self.public_keys:
                 results.append(SignatureResult(keyid, False, "not_checked"))
                 continue
@@ -120,12 +185,16 @@ class TrustPolicy:
         passing_keyids = {
             result.keyid
             for result in signatures
-            if result.cryptographic == "pass" and self._key_valid_at(result.keyid, evaluation_time)
+            if result.cryptographic == "pass"
+            and self._signer_valid_at(result.keyid, evaluation_time)
         }
         selected = [rule for rule in self.value["rules"] if _rule_matches(rule, statement)]
         candidates: list[str] = []
         for rule in selected:
-            counted = passing_keyids.intersection(rule["authorizedKeyIds"])
+            authorized_signers = set(rule.get("authorizedKeyIds", ())) | set(
+                rule.get("authorizedIdentityIds", ())
+            )
+            counted = passing_keyids.intersection(authorized_signers)
             if len(counted) < rule["minimumSignatures"]:
                 continue
             candidates.append(rule["id"])
@@ -215,11 +284,18 @@ class TrustPolicy:
         passing = {
             result.keyid
             for result in signatures
-            if result.cryptographic == "pass" and self._key_valid_at(result.keyid, evaluation_time)
+            if result.cryptographic == "pass"
+            and self._signer_valid_at(result.keyid, evaluation_time)
         }
         rule = self.value["handoff"]
         authorized = (
-            len(passing.intersection(rule["authorizedKeyIds"])) >= rule["minimumSignatures"]
+            len(
+                passing.intersection(
+                    set(rule.get("authorizedKeyIds", ()))
+                    | set(rule.get("authorizedIdentityIds", ()))
+                )
+            )
+            >= rule["minimumSignatures"]
         )
         return signatures, authorized
 
