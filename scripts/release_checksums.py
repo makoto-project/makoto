@@ -18,6 +18,7 @@ SCHEMA = ROOT / "release/checksums.schema.json"
 PREFIXES = (
     "demos/v0.2-end-to-end",
     "docs",
+    "examples/github-actions",
     "examples/go",
     "schemas/v0.2",
     "schemas/v0.3",

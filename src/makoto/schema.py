@@ -35,6 +35,7 @@ from makoto.protocol import (
     predicate_type as core_predicate_type,
 )
 from makoto.schema_catalog import SCHEMA_NAMES_BY_VERSION, schema_directory
+from makoto.sigstore import identity_id
 from makoto.standard_registry import verify_standard_profiles, verify_standard_registry
 from makoto.unicode15 import casefold, is_control, normalize_nfc
 
@@ -461,7 +462,7 @@ def _owned_string_violations(value: object, path: str = "$") -> list[CoreViolati
 
     violations: list[CoreViolation] = []
     exempt_values = {"payload", "sig", "publicKey", "message"}
-    exempt_subtrees = {"extensions"}
+    exempt_subtrees = {"extensions", "sigstoreBundle"}
     if isinstance(value, dict):
         for key, child in value.items():
             child_path = f"{path}.{key}"
@@ -1206,7 +1207,10 @@ def semantic_violations(
                     CoreViolation(f"$.signatures[{index}].keyid", "key ID is invalid")
                 )
             try:
-                canonical_b64decode(str(signature["sig"]), expected_length=64)
+                if version == "0.3" and "sigstoreBundle" in signature:
+                    canonical_b64decode(str(signature["sig"]))
+                else:
+                    canonical_b64decode(str(signature["sig"]), expected_length=64)
             except DsseError as error:
                 violations.append(CoreViolation(f"$.signatures[{index}].sig", str(error)))
         if len(key_ids) != len(set(key_ids)):
@@ -1323,6 +1327,14 @@ def semantic_violations(
             _sorted_unique(instance["requiredProfiles"], _profile_key, "$.requiredProfiles")
         )
         trust_key_ids = set(instance["keys"])
+        trust_identity_ids = set(instance.get("keylessIdentities", {}))
+        for signer_id in sorted(trust_key_ids.intersection(trust_identity_ids), key=str.encode):
+            violations.append(
+                CoreViolation(
+                    f"$.keylessIdentities.{signer_id}",
+                    "signer ID is already used by an Ed25519 key",
+                )
+            )
         for key_id, key in instance["keys"].items():
             if not _key_id_valid(str(key_id)):
                 violations.append(CoreViolation(f"$.keys.{key_id}", "key ID is invalid"))
@@ -1352,21 +1364,62 @@ def semantic_violations(
                 violations.append(
                     CoreViolation(f"$.keys.{key_id}", "validFrom must be earlier than validUntil")
                 )
+        for signer_id, identity in instance.get("keylessIdentities", {}).items():
+            if not _key_id_valid(str(signer_id)):
+                violations.append(
+                    CoreViolation(f"$.keylessIdentities.{signer_id}", "identity ID is invalid")
+                )
+            if identity_id(identity) != signer_id:
+                violations.append(
+                    CoreViolation(
+                        f"$.keylessIdentities.{signer_id}",
+                        "identity ID does not match the exact identity constraint",
+                    )
+                )
+            for field in ("issuer", "subject"):
+                if not _absolute_uri(str(identity[field])):
+                    violations.append(
+                        CoreViolation(f"$.keylessIdentities.{signer_id}.{field}", "URI is invalid")
+                    )
+        if "sigstoreTrustRoot" in instance:
+            root = instance["sigstoreTrustRoot"]
+            if not _absolute_uri(str(root["uri"])):
+                violations.append(CoreViolation("$.sigstoreTrustRoot.uri", "URI is invalid"))
+            violations.extend(_digest_violations(root["digest"], "$.sigstoreTrustRoot.digest"))
+        if trust_identity_ids and "sigstoreTrustRoot" not in instance:
+            violations.append(
+                CoreViolation(
+                    "$.sigstoreTrustRoot", "keyless identities require a pinned trust root"
+                )
+            )
         for path, rule in (("$.handoff", instance["handoff"]),) + tuple(
             (f"$.rules[{index}]", rule) for index, rule in enumerate(instance["rules"])
         ):
-            authorized = rule["authorizedKeyIds"]
-            if authorized != sorted(authorized, key=str.encode) or len(authorized) != len(
-                set(authorized)
+            authorized_keys = rule.get("authorizedKeyIds", [])
+            authorized_identities = rule.get("authorizedIdentityIds", [])
+            for field, authorized, known, label in (
+                ("authorizedKeyIds", authorized_keys, trust_key_ids, "key"),
+                (
+                    "authorizedIdentityIds",
+                    authorized_identities,
+                    trust_identity_ids,
+                    "identity",
+                ),
             ):
+                if authorized != sorted(authorized, key=str.encode) or len(authorized) != len(
+                    set(authorized)
+                ):
+                    violations.append(
+                        CoreViolation(f"{path}.{field}", f"{label} IDs must be sorted and unique")
+                    )
+                if not set(authorized).issubset(known):
+                    violations.append(CoreViolation(f"{path}.{field}", f"unknown {label} ID"))
+            authorized_signers = set(authorized_keys) | set(authorized_identities)
+            if rule["minimumSignatures"] > len(authorized_signers):
                 violations.append(
-                    CoreViolation(f"{path}.authorizedKeyIds", "key IDs must be sorted and unique")
-                )
-            if not set(authorized).issubset(trust_key_ids):
-                violations.append(CoreViolation(f"{path}.authorizedKeyIds", "unknown key ID"))
-            if rule["minimumSignatures"] > len(set(authorized)):
-                violations.append(
-                    CoreViolation(f"{path}.minimumSignatures", "threshold exceeds authorized keys")
+                    CoreViolation(
+                        f"{path}.minimumSignatures", "threshold exceeds authorized signers"
+                    )
                 )
         core_origin = core_predicate_type(version, "origin")
         core_transform = core_predicate_type(version, "transform")
@@ -1377,6 +1430,7 @@ def semantic_violations(
             scalar_arrays = (
                 "predicateTypes",
                 "authorizedKeyIds",
+                "authorizedIdentityIds",
                 "sourceKinds",
                 "sourceUris",
                 "operationTypes",
