@@ -6,6 +6,11 @@ This file is the project's committed home for project-intrinsic agent knowledge:
   verified properties, source inventory, and threat mapping are completed by
   `spec/failure-mode-coverage.md`.
 - Run the repository's complete local gate with `./scripts/check.sh`.
+- `release/v0.3/checksums.json` hashes nearly every tracked file. `check.sh`
+  only requires the untagged candidate to be well formed and regenerable;
+  `./scripts/release-check.sh` requires exact digests, so run
+  `uv run scripts/release_checksums.py --write` after the last included-file
+  edit. Never modify `release/v0.2/`; released bytes are immutable.
 - The schema-first Go examples are a separate module in `examples/go/`; run
   their focused formatting, vet, and test gate with `./scripts/check-go.sh`.
 
