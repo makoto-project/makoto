@@ -200,8 +200,10 @@ Both generators are deterministic; checks fail if catalogs or generated Unicode 
 from their authoritative bytes.
 
 The release checksum manifest covers the portable verifier source, schemas, spec, documentation,
-scripts, tests, conformance inputs, locked environment, and runnable demo. Regenerate it only
-after those inputs are final, then run the full release rehearsal:
+scripts, tests, conformance inputs, locked environment, and runnable demo. `./scripts/check.sh`
+requires the untagged candidate only to be well formed and regenerable, so routine dependency
+updates do not have to rewrite it. Regenerate it after those inputs are final, then run the full
+release rehearsal, which requires every digest to match:
 
 ```bash
 uv run scripts/release_checksums.py --write
