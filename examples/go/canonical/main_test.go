@@ -30,9 +30,9 @@ func TestCanonicalizationMatchesPythonFixtures(t *testing.T) {
 	}
 	root := filepath.Clean(filepath.Join("..", "..", ".."))
 	fixtures := []string{
-		"demos/v0.2-end-to-end/generated/positive-bundle/bundle.json",
-		"demos/v0.2-end-to-end/generated/receiver/policy.json",
-		"demos/v0.2-end-to-end/generated/reports/positive.json",
+		"demos/end-to-end/generated/positive-bundle/bundle.json",
+		"demos/end-to-end/generated/receiver/policy.json",
+		"demos/end-to-end/generated/reports/positive.json",
 	}
 	python := `
 import base64, json, sys

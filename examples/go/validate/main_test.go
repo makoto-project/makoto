@@ -45,7 +45,7 @@ func assertGenericRoundTrip(t *testing.T, raw []byte) {
 
 func TestPublishedSchemasValidatePositiveFixtures(t *testing.T) {
 	schemaDir := filepath.Join(repositoryRoot(), "schemas", "v0.2")
-	generated := filepath.Join(repositoryRoot(), "demos", "v0.2-end-to-end", "generated")
+	generated := filepath.Join(repositoryRoot(), "demos", "end-to-end", "generated")
 	pathsByKind := map[string][]string{
 		"bundle": {filepath.Join(generated, "positive-bundle", "bundle.json")},
 		"trust-policy": {
@@ -77,7 +77,7 @@ func TestPublishedSchemasValidatePositiveFixtures(t *testing.T) {
 
 func TestPublishedSchemasValidateEnvelopesAndPayloads(t *testing.T) {
 	schemaDir := filepath.Join(repositoryRoot(), "schemas", "v0.2")
-	bundle := filepath.Join(repositoryRoot(), "demos", "v0.2-end-to-end", "generated", "positive-bundle")
+	bundle := filepath.Join(repositoryRoot(), "demos", "end-to-end", "generated", "positive-bundle")
 	paths, err := filepath.Glob(filepath.Join(bundle, "attestations", "*.dsse.json"))
 	if err != nil {
 		t.Fatal(err)
@@ -138,7 +138,7 @@ func TestPublishedSchemasValidateEnvelopesAndPayloads(t *testing.T) {
 }
 
 func TestPublishedSchemaRejectsInvalidBundle(t *testing.T) {
-	raw := readFixture(t, "demos", "v0.2-end-to-end", "generated", "positive-bundle", "bundle.json")
+	raw := readFixture(t, "demos", "end-to-end", "generated", "positive-bundle", "bundle.json")
 	var bundle map[string]any
 	if err := json.Unmarshal(raw, &bundle); err != nil {
 		t.Fatal(err)

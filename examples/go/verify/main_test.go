@@ -18,12 +18,12 @@ func TestReferenceVerifierAcceptsPositiveBundle(t *testing.T) {
 		t.Skip("uv is not installed; skipping Python reference-verifier example")
 	}
 	args := []string{
-		"demos/v0.2-end-to-end/generated/positive-bundle",
-		"--policy", "demos/v0.2-end-to-end/generated/receiver/policy.json",
-		"--schema-catalog", "demos/v0.2-end-to-end/generated/receiver/catalog.json",
-		"--expected-manifest", "sha256:b83a5cd1870b8ce1f2931650611f0a19deed0796c0f262e4632efc17981f695c",
-		"--expected-head", "sha256:962be71738a0146642d27c87fba3c7338b0f2bb764b113b16867bb4808b11977",
-		"--expected-artifact", "demos/v0.2-end-to-end/generated/receiver/expected-artifact.json",
+		"demos/end-to-end/generated/positive-bundle",
+		"--policy", "demos/end-to-end/generated/receiver/policy.json",
+		"--schema-catalog", "demos/end-to-end/generated/receiver/catalog.json",
+		"--expected-manifest", "sha256:e24aae77ba1374162edff49aa0ab1d8dd7e38c333e134a2128ad1598fec99fb7",
+		"--expected-head", "sha256:99aee76db46a720405da6d0015d427c791b0d4e02367b9e2bc36ce82ae812bce",
+		"--expected-artifact", "demos/end-to-end/generated/receiver/expected-artifact.json",
 		"--evaluation-time", "2026-09-16T16:00:00Z",
 	}
 	got, err := verifyBundle(uv, repoRoot(), args)
@@ -33,7 +33,7 @@ func TestReferenceVerifierAcceptsPositiveBundle(t *testing.T) {
 	if got["decision"] != "allow" {
 		t.Fatalf("decision = %v, want allow", got["decision"])
 	}
-	wantRaw, err := os.ReadFile(filepath.Join(repoRoot(), "demos", "v0.2-end-to-end", "generated", "reports", "positive.json"))
+	wantRaw, err := os.ReadFile(filepath.Join(repoRoot(), "demos", "end-to-end", "generated", "reports", "positive.json"))
 	if err != nil {
 		t.Fatal(err)
 	}

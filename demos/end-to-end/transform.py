@@ -67,9 +67,7 @@ def public_safe(source: Path, destination: Path, *, reintroduce_email: bool = Fa
     output: list[dict[str, Any]] = []
     pseudonyms: set[str] = set()
     for row in value:
-        pseudonym = hashlib.sha256(f"makoto-demo-v0.2:{row['customer_id']}".encode()).hexdigest()[
-            :20
-        ]
+        pseudonym = hashlib.sha256(f"makoto-demo:{row['customer_id']}".encode()).hexdigest()[:20]
         if pseudonym in pseudonyms:
             raise ValueError("pseudonym collision")
         pseudonyms.add(pseudonym)

@@ -6,8 +6,7 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSIONLESS_DEMO = ROOT / "scripts" / "demo.sh"
-VERSIONED_DEMO = ROOT / "scripts" / "demo-v0.2.sh"
+DEMO = ROOT / "scripts" / "demo.sh"
 
 
 def _run_acceptance(script: Path) -> tuple[int, str, str]:
@@ -28,10 +27,10 @@ def _run_acceptance(script: Path) -> tuple[int, str, str]:
     return completed.returncode, stdout, completed.stderr
 
 
-def test_demo_entrypoints_have_identical_acceptance_behavior() -> None:
-    assert VERSIONLESS_DEMO.is_file()
-    assert VERSIONED_DEMO.is_file()
-    assert os.access(VERSIONLESS_DEMO, os.X_OK)
-    assert os.access(VERSIONED_DEMO, os.X_OK)
+def test_demo_entrypoint_runs_acceptance() -> None:
+    assert DEMO.is_file()
+    assert os.access(DEMO, os.X_OK)
 
-    assert _run_acceptance(VERSIONLESS_DEMO) == _run_acceptance(VERSIONED_DEMO)
+    returncode, stdout, stderr = _run_acceptance(DEMO)
+    assert returncode == 0, stderr
+    assert "positive: ALLOW (all checks pass)" in stdout
