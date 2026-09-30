@@ -36,7 +36,7 @@ from makoto.policy import TrustPolicy
 from makoto.schema import strict_json_loads, validate_core
 
 ROOT = Path(__file__).resolve().parents[1]
-DEMO = ROOT / "demos" / "v0.2-end-to-end" / "generated"
+DEMO = ROOT / "demos" / "end-to-end" / "generated"
 NEGATIVE = ROOT / "testdata" / "v0.2" / "assurance" / "negative"
 ASSESSOR_A = SigningKey.from_seed(bytes([21]) * 32)
 ASSESSOR_B = SigningKey.from_seed(bytes([22]) * 32)

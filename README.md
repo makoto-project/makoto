@@ -49,9 +49,6 @@ uv sync --locked --dev
 ./scripts/demo.sh --acceptance
 ```
 
-The versioned `./scripts/demo-v0.2.sh --acceptance` entry point remains supported for
-commands copied from earlier documentation.
-
 The demo creates a synthetic source dataset, attests an origin, applies and attests two
 transformations, signs an exact handoff manifest, then verifies the bundle using a separate
 receiver policy and two digest-pinned private schemas. It must produce one `ALLOW` and seven
@@ -72,7 +69,7 @@ Acceptance writes only to the ignored demo `.work/` directory and removes it on 
 To regenerate the checked display artifacts used by documentation and the website:
 
 ```bash
-./scripts/demo.sh --acceptance --export demos/v0.2-end-to-end/generated
+./scripts/demo.sh --acceptance --export demos/end-to-end/generated
 ```
 
 The checked-in keys are deterministic, insecure demo material. They are never production
@@ -227,10 +224,10 @@ uv run scripts/generate_unicode_tables.py
 Both generators are deterministic; checks fail if catalogs or generated Unicode tables differ
 from their authoritative bytes.
 
-The release checksum manifest covers the portable verifier source, schemas, spec, documentation,
+The release checksum manifests cover the portable verifier source, schemas, spec, documentation,
 scripts, tests, conformance inputs, locked environment, and runnable demo. `./scripts/check.sh`
 requires the untagged candidate only to be well formed and regenerable, so routine dependency
-updates do not have to rewrite it. Regenerate it after those inputs are final, then run the full
+updates do not have to rewrite them. Regenerate them after those inputs are final, then run the full
 release rehearsal, which requires every digest to match:
 
 ```bash
@@ -238,8 +235,8 @@ uv run scripts/release_checksums.py --write
 ./scripts/release-check.sh
 ```
 
-`release/v0.3/checksums.json` is not self-authenticating. A distributor must independently pin
-the reviewed Git tag and peeled commit before relying on the manifest.
+The checksum manifests are not self-authenticating. A distributor must independently pin the
+reviewed Git tag and peeled commit before relying on a manifest.
 
 ## Repository layout
 
@@ -253,7 +250,7 @@ examples/go/    schema-first Go integration examples and fixture-backed tests
 testdata/v0.2/  pinned conformance inputs and expected negative outcomes
 testdata/v0.3/  v0.3 licence, record, and diagnostic fixtures
 tests/          schema, crypto, graph, policy, pattern, Unicode, and bundle tests
-demos/v0.2-end-to-end/ canonical September producer-to-consumer proof
+demos/end-to-end/ canonical September producer-to-consumer proof
 docs/           v0.2 architecture, integration boundary, and migration guidance
 ```
 

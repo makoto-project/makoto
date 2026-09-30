@@ -44,7 +44,7 @@ release, and there is no published package. Everything below runs from this sour
 
 ```bash
 uv run makoto envelope inspect --envelope \
-  demos/v0.2-end-to-end/generated/positive-bundle/attestations/56b7be4394fe09c62ec7a3d5763cecc251e9696f267f35b2acc717b0d170a27a.dsse.json
+  demos/end-to-end/generated/positive-bundle/attestations/56b7be4394fe09c62ec7a3d5763cecc251e9696f267f35b2acc717b0d170a27a.dsse.json
 ```
 
 > **Point:** at `"payloadType": "application/vnd.in-toto+json"` and the single signing key id.
@@ -66,12 +66,12 @@ uv run makoto envelope inspect --envelope \
 > schema catalog, and its own expectation of the final bytes — outside that bundle."
 
 ```bash
-uv run makoto verify bundle demos/v0.2-end-to-end/generated/positive-bundle \
-  --policy demos/v0.2-end-to-end/generated/receiver/policy.json \
-  --schema-catalog demos/v0.2-end-to-end/generated/receiver/catalog.json \
-  --expected-manifest sha256:b83a5cd1870b8ce1f2931650611f0a19deed0796c0f262e4632efc17981f695c \
-  --expected-head sha256:962be71738a0146642d27c87fba3c7338b0f2bb764b113b16867bb4808b11977 \
-  --expected-artifact demos/v0.2-end-to-end/generated/receiver/expected-artifact.json \
+uv run makoto verify bundle demos/end-to-end/generated/positive-bundle \
+  --policy demos/end-to-end/generated/receiver/policy.json \
+  --schema-catalog demos/end-to-end/generated/receiver/catalog.json \
+  --expected-manifest sha256:e24aae77ba1374162edff49aa0ab1d8dd7e38c333e134a2128ad1598fec99fb7 \
+  --expected-head sha256:99aee76db46a720405da6d0015d427c791b0d4e02367b9e2bc36ce82ae812bce \
+  --expected-artifact demos/end-to-end/generated/receiver/expected-artifact.json \
   --evaluation-time 2026-09-16T16:00:00Z \
   --json
 ```
@@ -93,7 +93,7 @@ uv run makoto verify bundle demos/v0.2-end-to-end/generated/positive-bundle \
 > **Say:** "Two things get conflated everywhere else, and this is where the value is."
 
 ```bash
-uv run python -c "import json; d = json.load(open('demos/v0.2-end-to-end/generated/reports/unauthorized-signer.json')); print(d['decision'], d['primaryError'])"
+uv run python -c "import json; d = json.load(open('demos/end-to-end/generated/reports/unauthorized-signer.json')); print(d['decision'], d['primaryError'])"
 ```
 
 > **Say:** "That attacker's signature is cryptographically **valid**. The key is even present in

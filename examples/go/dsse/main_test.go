@@ -20,7 +20,7 @@ func root() string {
 
 func fixtureEnvelopes(t *testing.T) []string {
 	t.Helper()
-	bundle := filepath.Join(root(), "demos", "v0.2-end-to-end", "generated", "positive-bundle")
+	bundle := filepath.Join(root(), "demos", "end-to-end", "generated", "positive-bundle")
 	paths, err := filepath.Glob(filepath.Join(bundle, "attestations", "*.dsse.json"))
 	if err != nil {
 		t.Fatal(err)
@@ -48,7 +48,7 @@ func readJSON(t *testing.T, path string) ([]byte, map[string]any) {
 
 func policyKeys(t *testing.T) map[string]ed25519.PublicKey {
 	t.Helper()
-	path := filepath.Join(root(), "demos", "v0.2-end-to-end", "generated", "receiver", "policy.json")
+	path := filepath.Join(root(), "demos", "end-to-end", "generated", "receiver", "policy.json")
 	_, policy := readJSON(t, path)
 	result := make(map[string]ed25519.PublicKey)
 	for id, rawKey := range policy["keys"].(map[string]any) {

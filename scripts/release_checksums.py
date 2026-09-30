@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate or verify the exact Makoto v0.3 candidate or release checksum inventory."""
+"""Generate or verify the Makoto candidate or release checksum inventories."""
 
 from __future__ import annotations
 
@@ -14,9 +14,10 @@ from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "release/v0.3/checksums.json"
+V02_MANIFEST = ROOT / "release/v0.2/checksums.json"
 SCHEMA = ROOT / "release/checksums.schema.json"
 PREFIXES = (
-    "demos/v0.2-end-to-end",
+    "demos/end-to-end",
     "docs",
     "examples/github-actions",
     "examples/go",
@@ -28,6 +29,16 @@ PREFIXES = (
     "testdata/v0.3",
     "tests",
 )
+V02_PREFIXES = (
+    "demos/end-to-end",
+    "docs",
+    "examples/go",
+    "schemas/v0.2",
+    "scripts",
+    "src/makoto",
+    "testdata/v0.2",
+    "tests",
+)
 EXACT_PATHS = (
     "LICENSE",
     "README.md",
@@ -35,6 +46,14 @@ EXACT_PATHS = (
     "release/checksums.schema.json",
     "spec/v0.2.md",
     "spec/v0.3.md",
+    "uv.lock",
+)
+V02_EXACT_PATHS = (
+    "LICENSE",
+    "README.md",
+    "pyproject.toml",
+    "release/checksums.schema.json",
+    "spec/v0.2.md",
     "uv.lock",
 )
 FORBIDDEN_SEGMENTS = {
@@ -73,9 +92,13 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def included_paths(root: Path = ROOT) -> tuple[str, ...]:
-    paths = set(EXACT_PATHS)
-    for prefix in PREFIXES:
+def _included_paths(
+    root: Path,
+    prefixes: tuple[str, ...],
+    exact_paths: tuple[str, ...],
+) -> tuple[str, ...]:
+    paths = set(exact_paths)
+    for prefix in prefixes:
         directory = root / prefix
         if not directory.is_dir():
             raise ChecksumError(f"required release directory is absent: {prefix}")
@@ -85,9 +108,17 @@ def included_paths(root: Path = ROOT) -> tuple[str, ...]:
     missing = [path for path in paths if not (root / path).is_file()]
     if missing:
         raise ChecksumError(f"required release files are absent: {sorted(missing)!r}")
-    if "release/v0.3/checksums.json" in paths:
+    if any(path.endswith("/checksums.json") for path in paths):
         raise ChecksumError("checksum manifest cannot include itself")
     return tuple(sorted(paths, key=str.encode))
+
+
+def included_paths(root: Path = ROOT) -> tuple[str, ...]:
+    return _included_paths(root, PREFIXES, EXACT_PATHS)
+
+
+def included_v02_paths(root: Path = ROOT) -> tuple[str, ...]:
+    return _included_paths(root, V02_PREFIXES, V02_EXACT_PATHS)
 
 
 def sha256(path: Path) -> str:
@@ -101,6 +132,17 @@ def build_manifest(root: Path = ROOT, *, tag: str | None = None) -> dict[str, An
         "files": [
             {"path": relative, "digest": {"sha256": sha256(root / relative)}}
             for relative in included_paths(root)
+        ],
+    }
+
+
+def build_v02_manifest(root: Path = ROOT) -> dict[str, Any]:
+    return {
+        "version": "1",
+        "tag": None,
+        "files": [
+            {"path": relative, "digest": {"sha256": sha256(root / relative)}}
+            for relative in included_v02_paths(root)
         ],
     }
 
@@ -142,7 +184,13 @@ def check_shape(value: Any, schema: Any) -> None:
         raise ChecksumError("checksum paths must be NFC")
 
 
-def verify_manifest(root: Path = ROOT, *, exact: bool = False) -> bool:
+def _verify_manifest(
+    root: Path,
+    manifest_path: str,
+    expected: dict[str, Any],
+    *,
+    exact: bool,
+) -> bool:
     """Verify the checked-in inventory and report whether it matches the working tree.
 
     A tagged inventory, or any inventory when ``exact`` is set, must match byte for byte.
@@ -150,13 +198,13 @@ def verify_manifest(root: Path = ROOT, *, exact: bool = False) -> bool:
     requires it to be well formed and regenerable: dependency updates may change included
     bytes such as uv.lock without rewriting it, and release-check.sh enforces exactness.
     """
-    value = strict_json(root / "release/v0.3/checksums.json")
+    path = root / manifest_path
+    value = strict_json(path)
     schema = strict_json(root / "release/checksums.schema.json")
     Draft202012Validator.check_schema(schema)
     check_shape(value, schema)
-    if (root / "release/v0.3/checksums.json").read_bytes() != canonical_bytes(value):
+    if path.read_bytes() != canonical_bytes(value):
         raise ChecksumError("checksum manifest is not canonical JSON plus one LF")
-    expected = build_manifest(root, tag=value["tag"])
     check_shape(expected, schema)
     current = value == expected
     if not current and (exact or value["tag"] is not None):
@@ -164,14 +212,38 @@ def verify_manifest(root: Path = ROOT, *, exact: bool = False) -> bool:
     return current
 
 
+def verify_manifest(root: Path = ROOT, *, exact: bool = False) -> bool:
+    value = strict_json(root / "release/v0.3/checksums.json")
+    expected = build_manifest(root, tag=value["tag"])
+    return _verify_manifest(
+        root,
+        "release/v0.3/checksums.json",
+        expected,
+        exact=exact,
+    )
+
+
+def verify_v02_manifest(root: Path = ROOT, *, exact: bool = False) -> bool:
+    return _verify_manifest(
+        root,
+        "release/v0.2/checksums.json",
+        build_v02_manifest(root),
+        exact=exact,
+    )
+
+
 def main() -> int:
     args = parse_args()
     if args.write:
-        MANIFEST.parent.mkdir(parents=True, exist_ok=True)
+        if args.tag is None:
+            V02_MANIFEST.write_bytes(canonical_bytes(build_v02_manifest()))
+            print(f"wrote {V02_MANIFEST.relative_to(ROOT)}")
         MANIFEST.write_bytes(canonical_bytes(build_manifest(tag=args.tag)))
         print(f"wrote {MANIFEST.relative_to(ROOT)}")
     else:
-        if verify_manifest(exact=args.exact):
+        v02_current = verify_v02_manifest(exact=args.exact)
+        v03_current = verify_manifest(exact=args.exact)
+        if v02_current and v03_current:
             print("release checksums valid")
         else:
             print("release checksums valid; candidate digests trail the tree until release")

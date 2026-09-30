@@ -2,5 +2,16 @@
 set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${repository_root}"
 
-exec bash "${repository_root}/scripts/demo-v0.2.sh" "$@"
+if [[ "${1:-}" != "--acceptance" || "$#" -gt 3 ]]; then
+  echo "usage: ./scripts/demo.sh --acceptance [--export <repository-path>]" >&2
+  exit 2
+fi
+
+if [[ "$#" -eq 3 && "${2:-}" != "--export" ]]; then
+  echo "usage: ./scripts/demo.sh --acceptance [--export <repository-path>]" >&2
+  exit 2
+fi
+
+uv run demos/end-to-end/run_demo.py "$@"

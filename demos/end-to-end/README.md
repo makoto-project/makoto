@@ -11,19 +11,16 @@ Run from the repository root:
 ./scripts/demo.sh --acceptance
 ```
 
-The versioned `./scripts/demo-v0.2.sh --acceptance` entry point remains supported for
-commands copied from earlier documentation.
-
 The acceptance mode uses fixed, insecure demo-only Ed25519 seeds and timestamps
 to make every generated JSON byte reproducible. It writes only beneath the
-ignored `demos/v0.2-end-to-end/.work/` directory and removes that directory on
+ignored `demos/end-to-end/.work/` directory and removes that directory on
 success.
 
 To regenerate the reviewable documentation artifacts without retaining private
 demo keys:
 
 ```console
-./scripts/demo.sh --acceptance --export demos/v0.2-end-to-end/generated
+./scripts/demo.sh --acceptance --export demos/end-to-end/generated
 ```
 
 The export contains the source and transformed data, positive handoff bundle,
@@ -37,12 +34,12 @@ manifest, graph head, and final bytes with receiver-owned policy, schemas, and
 expectations:
 
 ```console
-uv run makoto verify bundle demos/v0.2-end-to-end/generated/positive-bundle \
-  --policy demos/v0.2-end-to-end/generated/receiver/policy.json \
-  --schema-catalog demos/v0.2-end-to-end/generated/receiver/catalog.json \
-  --expected-manifest sha256:b83a5cd1870b8ce1f2931650611f0a19deed0796c0f262e4632efc17981f695c \
-  --expected-head sha256:962be71738a0146642d27c87fba3c7338b0f2bb764b113b16867bb4808b11977 \
-  --expected-artifact demos/v0.2-end-to-end/generated/receiver/expected-artifact.json \
+uv run makoto verify bundle demos/end-to-end/generated/positive-bundle \
+  --policy demos/end-to-end/generated/receiver/policy.json \
+  --schema-catalog demos/end-to-end/generated/receiver/catalog.json \
+  --expected-manifest sha256:e24aae77ba1374162edff49aa0ab1d8dd7e38c333e134a2128ad1598fec99fb7 \
+  --expected-head sha256:99aee76db46a720405da6d0015d427c791b0d4e02367b9e2bc36ce82ae812bce \
+  --expected-artifact demos/end-to-end/generated/receiver/expected-artifact.json \
   --evaluation-time 2026-09-16T16:00:00Z \
   --json
 ```
